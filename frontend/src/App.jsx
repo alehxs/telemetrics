@@ -10,25 +10,27 @@ const Home = () => {
 
   return (
     <div className="p-8">
-      {/* Year Dropdown */}
-      <YearDropdown onSelect={(year) => setSelectedYear(year)} />
+      <div className="flex flex-wrap gap-4">
+        {/* Year Dropdown */}
+        <YearDropdown onSelect={(year) => setSelectedYear(year)} />
 
-      {/* Grand Prix Dropdown */}
-      {selectedYear && (
-        <GrandPrixDropdown
-          year={selectedYear}
-          onSelect={(grandPrix) => setSelectedGrandPrix(grandPrix)}
-        />
-      )}
+        {/* Grand Prix Dropdown */}
+        {selectedYear && (
+          <GrandPrixDropdown
+            year={selectedYear}
+            onSelect={(grandPrix) => setSelectedGrandPrix(grandPrix)}
+          />
+        )}
 
-      {/* Session Dropdown */}
-      {selectedYear && selectedGrandPrix && (
-        <SessionDropdown
-          year={selectedYear}
-          grandPrix={selectedGrandPrix}
-          onSelect={(session) => setSelectedSession(session)}
-        />
-      )}
+        {/* Session Dropdown */}
+        {selectedYear && selectedGrandPrix && (
+          <SessionDropdown
+            year={selectedYear}
+            grandPrix={selectedGrandPrix}
+            onSelect={(session) => setSelectedSession(session)}
+          />
+        )}
+      </div>
 
       {/* Display Selected Data */}
       {selectedSession && (
