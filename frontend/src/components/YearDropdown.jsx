@@ -6,7 +6,7 @@ const YearDropdown = ({ onSelect }) => {
   return (
     <Dropdown
       options={years}
-      placeholder="Select Year"
+      placeholder="Year"
       onSelect={onSelect}
     />
   );

@@ -28,7 +28,7 @@ const SessionDropdown = ({ year, grandPrix, onSelect }) => {
   return (
     <Dropdown
       options={sessions}
-      placeholder={`Select Session (${grandPrix})`}
+      placeholder={`Session`}
       onSelect={onSelect}
     />
   );

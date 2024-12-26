@@ -27,7 +27,7 @@ const GrandPrixDropdown = ({ year, onSelect }) => {
   return (
     <Dropdown
       options={grandPrixList}
-      placeholder={`Select Grand Prix (${year})`}
+      placeholder={`Grand Prix`}
       onSelect={onSelect}
     />
   );
