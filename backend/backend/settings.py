@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-s8phs-*(b2r!ge#^n==%)5df95+opknd^zu!a_x-=jywm*0cc(
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["127.0.0.1", "localhost"]
+ALLOWED_HOSTS = ["127.0.0.1", "localhost", 'telemetrics.onrender.com']
 
 
 # Application definition
