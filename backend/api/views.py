@@ -69,3 +69,40 @@ def sessions(request):
 
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
+
+@csrf_exempt
+def session_results(request):
+    year = request.GET.get('year')
+    grand_prix = request.GET.get('grand_prix')
+    session = request.GET.get('session')
+
+    if not year or not grand_prix or not session:
+        return JsonResponse({'error': 'Year, Grand Prix, and Session are required.'}, status=400)
+
+    try:
+        # Load the session data
+        session_data = fastf1.get_session(int(year), grand_prix, session)
+        session_data.load()
+
+        # Get session results
+        results = session_data.results
+
+        # Extract relevant fields for each driver
+        driver_results = []
+        for _, row in results.iterrows():
+            driver_results.append({
+                "DriverNumber": row["DriverNumber"],
+                "FullName": row["FullName"],
+                "TeamName": row["TeamName"],
+                "Position": row.get("Position"),
+                "ClassifiedPosition": row.get("ClassifiedPosition"),
+                "GridPosition": row.get("GridPosition"),
+                "Points": row.get("Points"),
+                "Time": str(row.get("Time")),
+                "Status": row.get("Status"),
+            })
+
+        return JsonResponse(driver_results, safe=False)
+
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
