@@ -56,13 +56,7 @@ const Home = () => {
         )}
       </div>
 
-      {/* Display Selected Session */}
-      {selectedSession && (
-        <div className="mt-4">
-          <h2 className="text-lg font-semibold">Selected Session</h2>
-          <p>{selectedSession}</p>
-        </div>
-      )}
+      
 
       {/* Display Driver Info */}
       {results.length > 0 && (

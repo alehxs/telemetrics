@@ -32,8 +32,8 @@ const DriverInfo = ({ results }) => {
               <td
                 className="border border-gray-300 px-4 py-2"
                 style={{
-                  backgroundColor: driver.TeamColor || "#ffffff",
-                  color: "#ffffff",
+                  backgroundColor: driver.TeamColor || "#00000",
+                  color: "#00000",
                 }}
               >
                 {driver.TeamName}

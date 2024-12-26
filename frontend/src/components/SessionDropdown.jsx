@@ -12,7 +12,8 @@ const SessionDropdown = ({ year, grandPrix, onSelect }) => {
         );
 
         const data = await response.json();
-        const sessionValues = Object.values(data).filter((value) => value !== null && value !== "None");
+        const sessionValues = Object.values(data).filter((value) => value !== null && value !== "None")
+        .reverse();
 
         setSessions(sessionValues);
       } catch (error) {
