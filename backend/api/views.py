@@ -70,39 +70,33 @@ def sessions(request):
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
 
-@csrf_exempt
 def session_results(request):
     year = request.GET.get('year')
     grand_prix = request.GET.get('grand_prix')
-    session = request.GET.get('session')
+    session_type = request.GET.get('session')
 
-    if not year or not grand_prix or not session:
-        return JsonResponse({'error': 'Year, Grand Prix, and Session are required.'}, status=400)
+    if not (year and grand_prix and session_type):
+        return JsonResponse({"error": "Missing parameters"}, status=400)
 
     try:
-        # Load the session data
-        session_data = fastf1.get_session(int(year), grand_prix, session)
-        session_data.load()
+        session = fastf1.get_session(int(year), grand_prix, session_type)
+        session.load()
+        results = session.results
 
-        # Get session results
-        results = session_data.results
-
-        # Extract relevant fields for each driver
-        driver_results = []
-        for _, row in results.iterrows():
-            driver_results.append({
-                "DriverNumber": row["DriverNumber"],
-                "FullName": row["FullName"],
-                "TeamName": row["TeamName"],
-                "Position": row.get("Position"),
-                "ClassifiedPosition": row.get("ClassifiedPosition"),
-                "GridPosition": row.get("GridPosition"),
-                "Points": row.get("Points"),
-                "Time": str(row.get("Time")),
-                "Status": row.get("Status"),
+        # Build a response with relevant fields, including HeadshotUrl
+        response_data = []
+        for _, driver in results.iterrows():
+            response_data.append({
+                "DriverNumber": driver["DriverNumber"],
+                "FullName": driver["FullName"],
+                "TeamName": driver["TeamName"],
+                "Position": driver["Position"],
+                "HeadshotUrl": driver["HeadshotUrl"],  # Add Headshot URL
+                "TeamColor": driver["TeamColor"],      # Add Team Color
+                "Status": driver["Status"],
             })
 
-        return JsonResponse(driver_results, safe=False)
+        return JsonResponse(response_data, safe=False)
 
     except Exception as e:
-        return JsonResponse({'error': str(e)}, status=500)
+        return JsonResponse({"error": str(e)}, status=500)
