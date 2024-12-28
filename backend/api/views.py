@@ -2,6 +2,8 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 import fastf1
 
+fastf1.Cache.enable_cache('../backend/cache')  
+
 def drivers(request):
     year = request.GET.get('year')
     grand_prix = request.GET.get('grand_prix')
