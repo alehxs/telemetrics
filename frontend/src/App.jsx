@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import YearDropdown from "./components/YearDropdown";
 import GrandPrixDropdown from "./components/GrandPrixDropdown";
 import SessionDropdown from "./components/SessionDropdown";
-import DriverInfo from "./components/DriverInfo";
+import SessionResults from "./components/SessionResults";
 
 const Home = () => {
   const [selectedYear, setSelectedYear] = useState(null);
@@ -10,7 +10,6 @@ const Home = () => {
   const [selectedSession, setSelectedSession] = useState(null);
   const [results, setResults] = useState([]);
 
-  // Fetch session results whenever year, grand prix, and session are selected
   useEffect(() => {
     const fetchResults = async () => {
       if (selectedYear && selectedGrandPrix && selectedSession) {
@@ -61,7 +60,7 @@ const Home = () => {
       {/* Display Driver Info */}
       {results.length > 0 && (
         <div className="mt-8">
-          <DriverInfo results={results} />
+          <SessionResults results={results} />
         </div>
       )}
     </div>

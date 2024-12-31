@@ -1,6 +1,9 @@
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
+
 import fastf1
+import pandas as pd
+
 fastf1.Cache.enable_cache('../backend/cache')
 
 
@@ -58,23 +61,34 @@ def session_results(request):
   session_type = request.GET.get('session')
 
   if not (year and grand_prix and session_type):
-    return JsonResponse({"error": "Missing parameters"}, status=400)
+    return JsonResponse({"error": "Year, Grand Prix, and session type are required"}, status=400)
 
   try:
     session = fastf1.get_session(int(year), grand_prix, session_type)
     session.load()
     results = session.results
 
+    # Format data
     response_data = []
-    for _, driver in results.iterrows():
+    for _, row in results.iterrows():
       response_data.append({
-        "DriverNumber": driver["DriverNumber"],
-        "FullName": driver["FullName"],
-        "TeamName": driver["TeamName"],
-        "Position": driver["Position"],
-        "HeadshotUrl": driver["HeadshotUrl"],  
-        "TeamColor": driver["TeamColor"],      
-        "Status": driver["Status"],
+        "DriverNumber": row.get("DriverNumber", ""),
+        "BroadcastName": row.get("BroadcastName", ""),
+        "FullName": row.get("FullName", ""),
+        "Abbreviation": row.get("Abbreviation", ""),
+        "TeamName": row.get("TeamName", ""),
+        "TeamColor": f"#{row.get('TeamColor', 'FFFFFF')}",
+        "Position": row.get("Position", None),
+        "ClassifiedPosition": row.get("ClassifiedPosition", ""),
+        "GridPosition": None if pd.isna(row.get("GridPosition")) else row.get("GridPosition"),
+        "Q1": str(row["Q1"]) if pd.notna(row.get("Q1")) else None,
+        "Q2": str(row["Q2"]) if pd.notna(row.get("Q2")) else None,
+        "Q3": str(row["Q3"]) if pd.notna(row.get("Q3")) else None,
+        "Time": str(row["Time"]) if pd.notna(row.get("Time")) else None,
+        "Status": row.get("Status", ""),
+        "Points": None if pd.isna(row.get("Points")) else row.get("Points"),
+        "HeadshotUrl": row.get("HeadshotUrl", None),
+        "CountryCode": row.get("CountryCode", ""),
       })
 
     return JsonResponse(response_data, safe=False)

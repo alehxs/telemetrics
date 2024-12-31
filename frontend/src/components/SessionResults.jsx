@@ -1,4 +1,4 @@
-const DriverInfo = ({ results }) => {
+const SessionResults = ({ results }) => {
   return (
     <div className="p-4">
       <h2 className="text-xl font-bold mb-4">Event Results</h2>
@@ -29,14 +29,15 @@ const DriverInfo = ({ results }) => {
                 )}
                 <span>{driver.FullName}</span>
               </td>
-              <td
-                className="border border-gray-300 px-4 py-2"
-                style={{
-                  backgroundColor: driver.TeamColor || "#00000",
-                  color: "#00000",
-                }}
-              >
-                {driver.TeamName}
+              <td className="border border-gray-300 px-4 py-2">
+                <span
+                  style={{
+                    color: driver.TeamColor, 
+                    fontWeight: 500,
+                  }}
+                >
+                  {driver.TeamName}
+                </span>
               </td>
               <td className="border border-gray-300 px-4 py-2">
                 {driver.Status || "N/A"}
@@ -49,4 +50,4 @@ const DriverInfo = ({ results }) => {
   );
 };
 
-export default DriverInfo;
+export default SessionResults;
