@@ -3,6 +3,7 @@ import YearDropdown from "./components/YearDropdown";
 import GrandPrixDropdown from "./components/GrandPrixDropdown";
 import SessionDropdown from "./components/SessionDropdown";
 import SessionResults from "./components/SessionResults";
+import FastestLap from "./components/FastestLap";
 
 const Home = () => {
   const [selectedYear, setSelectedYear] = useState(null);
@@ -57,12 +58,20 @@ const Home = () => {
 
       
 
-      {/* Display Driver Info */}
+
+      {/* Fastest Lap */}
       {results.length > 0 && (
-        <div className="mt-8">
-          <SessionResults results={results} />
-        </div>
-      )}
+      <div className="mt-8">
+        <SessionResults results={results} />
+        {/* Fastest Lap Component */}
+        <FastestLap
+          year={selectedYear}
+          grandPrix={selectedGrandPrix}
+          session={selectedSession}
+        />
+      </div>
+    )}
+
     </div>
   );
 };
