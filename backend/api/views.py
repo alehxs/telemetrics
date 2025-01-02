@@ -95,3 +95,33 @@ def session_results(request):
 
   except Exception as e:
     return JsonResponse({"error": str(e)}, status=500)
+
+def get_fastest_lap(request):
+  year = request.GET.get('year')
+  grand_prix = request.GET.get('grand_prix')
+  session_type = request.GET.get('session')
+
+  if not (year and grand_prix and session_type):
+    return JsonResponse({"error": "Missing parameters"}, status=400)
+
+  try:
+    # Load the session
+    session = fastf1.get_session(int(year), grand_prix, session_type)
+    session.load()
+
+    # Pick the fastest lap
+    fastest_lap = session.laps.pick_fastest()
+
+    # Extract relevant details
+    response_data = {
+      "Driver": fastest_lap["Driver"],  # Driver's three-letter abbreviation
+      "LapTime": str(fastest_lap["LapTime"]),  # Fastest lap time
+      "LapNumber": fastest_lap["LapNumber"],  # Lap number
+      "TyreCompound": fastest_lap.get("Compound", "Unknown"),  # Tyre compound
+      "TyreAge": fastest_lap.get("TyreLife", "Unknown")  # Tyre life in laps
+    }
+
+    return JsonResponse(response_data)
+
+  except Exception as e:
+    return JsonResponse({"error": str(e)}, status=500)
