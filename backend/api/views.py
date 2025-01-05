@@ -6,7 +6,6 @@ import pandas as pd
 
 fastf1.Cache.enable_cache('../backend/cache')
 
-
 def get_grand_prix_locations(request):
   year = request.GET.get("year")
   if not year:
@@ -23,6 +22,7 @@ def get_grand_prix_locations(request):
     locations = schedule[["EventName", "Location"]].to_dict("records")
 
     return JsonResponse(locations, safe=False)  
+    
   except Exception as e:
     return JsonResponse({"error": str(e)}, status=500)
 
@@ -105,20 +105,17 @@ def get_fastest_lap(request):
     return JsonResponse({"error": "Missing parameters"}, status=400)
 
   try:
-    # Load the session
     session = fastf1.get_session(int(year), grand_prix, session_type)
     session.load()
 
-    # Pick the fastest lap
     fastest_lap = session.laps.pick_fastest()
 
-    # Extract relevant details
     response_data = {
-      "Driver": fastest_lap["Driver"],  # Driver's three-letter abbreviation
-      "LapTime": str(fastest_lap["LapTime"]),  # Fastest lap time
-      "LapNumber": fastest_lap["LapNumber"],  # Lap number
-      "TyreCompound": fastest_lap.get("Compound", "Unknown"),  # Tyre compound
-      "TyreAge": fastest_lap.get("TyreLife", "Unknown")  # Tyre life in laps
+      "Driver": fastest_lap["Driver"],  
+      "LapTime": str(fastest_lap["LapTime"]), 
+      "LapNumber": fastest_lap["LapNumber"],  
+      "TyreCompound": fastest_lap.get("Compound", "Unknown"),  
+      "TyreAge": fastest_lap.get("TyreLife", "Unknown")  
     }
 
     return JsonResponse(response_data)
