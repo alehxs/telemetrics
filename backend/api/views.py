@@ -1,5 +1,7 @@
 from django.http import JsonResponse
+from django.core.cache import cache
 from django.views.decorators.csrf import csrf_exempt
+
 
 import fastf1
 import pandas as pd
@@ -68,8 +70,8 @@ def session_results(request):
     session.load()
     results = session.results
 
-    # Format data
     response_data = []
+
     for _, row in results.iterrows():
       response_data.append({
         "DriverNumber": row.get("DriverNumber", ""),
@@ -97,28 +99,68 @@ def session_results(request):
     return JsonResponse({"error": str(e)}, status=500)
 
 def get_fastest_lap(request):
-  year = request.GET.get('year')
-  grand_prix = request.GET.get('grand_prix')
-  session_type = request.GET.get('session')
+    year = request.GET.get('year')
+    grand_prix = request.GET.get('grand_prix')
+    session_type = request.GET.get('session')
 
-  if not (year and grand_prix and session_type):
-    return JsonResponse({"error": "Missing parameters"}, status=400)
+    cache_key = f"fastest_lap_{year}_{grand_prix}_{session_type}"
+    cached_data = cache.get(cache_key)
 
-  try:
-    session = fastf1.get_session(int(year), grand_prix, session_type)
-    session.load()
+    if cached_data:
+        return JsonResponse(cached_data)
 
-    fastest_lap = session.laps.pick_fastest()
+    try:
+        session = fastf1.get_session(int(year), grand_prix, session_type)
+        session.load()
 
-    response_data = {
-      "Driver": fastest_lap["Driver"],  
-      "LapTime": str(fastest_lap["LapTime"]), 
-      "LapNumber": fastest_lap["LapNumber"],  
-      "TyreCompound": fastest_lap.get("Compound", "Unknown"),  
-      "TyreAge": fastest_lap.get("TyreLife", "Unknown")  
-    }
+        fastest_lap = session.laps.pick_fastest()
+        response_data = {
+            "Driver": fastest_lap["Driver"],
+            "LapTime": str(fastest_lap["LapTime"]),
+            "LapNumber": fastest_lap["LapNumber"],
+            "TyreCompound": fastest_lap.get("Compound", "Unknown"),
+            "TyreAge": fastest_lap.get("TyreLife", "Unknown"),
+        }
 
-    return JsonResponse(response_data)
+        cache.set(cache_key, response_data, timeout=3600)  # Cache for 1 hour
+        return JsonResponse(response_data)
 
-  except Exception as e:
-    return JsonResponse({"error": str(e)}, status=500)
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
+
+@csrf_exempt
+def get_session_data(request):
+    year = request.GET.get('year')
+    grand_prix = request.GET.get('grand_prix')
+    session_type = request.GET.get('session')
+
+    if not (year and grand_prix and session_type):
+        return JsonResponse({"error": "Missing parameters"}, status=400)
+
+    cache_key = f"session_data_{year}_{grand_prix}_{session_type}"
+    cached_data = cache.get(cache_key)
+
+    if cached_data:
+        return JsonResponse(cached_data)
+
+    try:
+        session = fastf1.get_session(int(year), grand_prix, session_type)
+        session.load()  # Load all session-related data
+
+        # Extracting relevant session data
+        session_data = {
+            "event": {
+                "name": session.event['EventName'],
+                "location": session.event['Location'],
+                "date": str(session.event['EventDate']),
+            },
+            "session_name": session.name,
+            "drivers": session.drivers,
+            "total_laps": session.total_laps,
+            "weather_data_available": session.weather_data is not None,
+        }
+
+        cache.set(cache_key, session_data, timeout=3600)  # Cache for 1 hour
+        return JsonResponse(session_data)
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
