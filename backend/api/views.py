@@ -122,7 +122,7 @@ def get_fastest_lap(request):
             "TyreAge": fastest_lap.get("TyreLife", "Unknown"),
         }
 
-        cache.set(cache_key, response_data, timeout=3600)  # Cache for 1 hour
+        cache.set(cache_key, response_data, timeout=3600) 
         return JsonResponse(response_data)
 
     except Exception as e:
@@ -145,9 +145,8 @@ def get_session_data(request):
 
     try:
         session = fastf1.get_session(int(year), grand_prix, session_type)
-        session.load()  # Load all session-related data
+        session.load() 
 
-        # Extracting relevant session data
         session_data = {
             "event": {
                 "name": session.event['EventName'],
@@ -160,7 +159,7 @@ def get_session_data(request):
             "weather_data_available": session.weather_data is not None,
         }
 
-        cache.set(cache_key, session_data, timeout=3600)  # Cache for 1 hour
+        cache.set(cache_key, session_data, timeout=3600) 
         return JsonResponse(session_data)
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
