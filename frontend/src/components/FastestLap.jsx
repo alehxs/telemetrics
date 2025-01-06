@@ -41,13 +41,29 @@ const FastestLap = ({ year, grandPrix, session }) => {
     return <div className="text-gray-500">Loading fastest lap...</div>;
   }
 
-  const { Driver: abbreviation, LapTime: time, LapNumber: lap, TyreAge: tyreLife, TyreCompound: tyreCompound } = fastestLap;
+  const {
+    Driver: abbreviation,
+    LapTime: time,
+    LapNumber: lap,
+    TyreAge: tyreLife,
+    TyreCompound: tyreCompound,
+  } = fastestLap;
 
   const formattedTime = formatLeaderTime(time);
+  const fastestLapSvgPath = "src/assets/svgs/fastestlap.svg";
+  const tyreSvgPath = `src/assets/svgs/${tyreCompound.toLowerCase()}tyre.svg`;
 
   return (
-    <div className="fastest-lap bg-gray-200 py-2 px-4 rounded-md shadow-md text-sm text-center">
-      <span className="font-bold">FASTEST LAP</span> ({formattedTime}) - {abbreviation} Lap {lap}  Tire Life ({tyreLife}) [{tyreCompound}]
+    <div
+      className="flex items-center gap-2 p-2 rounded-md text-sm text-white"
+      style={{ backgroundColor: "#AE38E0" }}
+    >
+      <img src={fastestLapSvgPath} alt="Timer icon" className="w-6 h-6" />
+      <div className="font-bold">FASTEST LAP</div>
+      <div className="flex items-center gap-2">
+        <img src={tyreSvgPath} alt={`${tyreCompound} Tyre`} className="w-6 h-6" />
+        {formattedTime} - {abbreviation} LAP {lap} Tire Life {tyreLife}
+      </div>
     </div>
   );
 };
