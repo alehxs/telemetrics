@@ -1,7 +1,10 @@
 from django.http import JsonResponse
 from django.core.cache import cache
 from django.views.decorators.csrf import csrf_exempt
+from fastf1 import get_event_schedule
 
+schedule = get_event_schedule(2024)
+print(schedule["EventName"].tolist())
 
 import fastf1
 import pandas as pd
@@ -132,34 +135,48 @@ def get_fastest_lap(request):
 def get_session_data(request):
     year = request.GET.get('year')
     grand_prix = request.GET.get('grand_prix')
-    session_type = request.GET.get('session')
-
-    if not (year and grand_prix and session_type):
-        return JsonResponse({"error": "Missing parameters"}, status=400)
-
-    cache_key = f"session_data_{year}_{grand_prix}_{session_type}"
-    cached_data = cache.get(cache_key)
-
-    if cached_data:
-        return JsonResponse(cached_data)
+    
+    if not (year and grand_prix):
+        return JsonResponse({"error": "Year and Grand Prix are required."}, status=400)
 
     try:
-        session = fastf1.get_session(int(year), grand_prix, session_type)
-        session.load() 
+        year = int(year)
+    except ValueError:
+        return JsonResponse({"error": "Invalid year parameter."}, status=400)
 
+    try:
+        # Append "Grand Prix" if not already included
+        if "Grand Prix" not in grand_prix:
+            grand_prix = f"{grand_prix} Grand Prix"
+        
+        # Fetch event schedule for the provided year
+        schedule = fastf1.get_event_schedule(year)
+        event = schedule[schedule['EventName'] == grand_prix]  # Filter for the specific event
+        
+        if event.empty:  # Check if no event matches the query
+            return JsonResponse({
+                "error": f"Grand Prix '{grand_prix}' not found in {year}. Available events: {schedule['EventName'].tolist()}"
+            }, status=404)
+
+        # Collect relevant session data
         session_data = {
-            "event": {
-                "name": session.event['EventName'],
-                "location": session.event['Location'],
-                "date": str(session.event['EventDate']),
-            },
-            "session_name": session.name,
-            "drivers": session.drivers,
-            "total_laps": session.total_laps,
-            "weather_data_available": session.weather_data is not None,
+            "RoundNumber": int(event.iloc[0]["RoundNumber"]),  # Convert to int
+            "Country": str(event.iloc[0]["Country"]),
+            "Location": str(event.iloc[0]["Location"]),
+            "EventName": str(event.iloc[0]["EventName"]),
+            "EventDate": str(event.iloc[0].get("EventDate", "Unknown")).split(" ")[0],
+            "OfficialEventName": str(event.iloc[0].get("OfficialEventName", "Unknown")).title(),
+            "EventFormat": str(event.iloc[0].get("EventFormat", "Unknown")),
+            "SessionDates": {
+                "Practice 1": str(event.iloc[0].get("Session1Date", "")),
+                "Practice 2": str(event.iloc[0].get("Session2Date", "")),
+                "Practice 3": str(event.iloc[0].get("Session3Date", "")),
+                "Qualifying": str(event.iloc[0].get("Session4Date", "")),
+                "Race": str(event.iloc[0].get("Session5Date", "")),
+            }
         }
 
-        cache.set(cache_key, session_data, timeout=3600) 
         return JsonResponse(session_data)
+
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
