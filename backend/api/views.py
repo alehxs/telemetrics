@@ -3,9 +3,6 @@ from django.core.cache import cache
 from django.views.decorators.csrf import csrf_exempt
 from fastf1 import get_event_schedule
 
-schedule = get_event_schedule(2024)
-print(schedule["EventName"].tolist())
-
 import fastf1
 import pandas as pd
 
@@ -145,35 +142,23 @@ def get_session_data(request):
         return JsonResponse({"error": "Invalid year parameter."}, status=400)
 
     try:
-        # Append "Grand Prix" if not already included
         if "Grand Prix" not in grand_prix:
             grand_prix = f"{grand_prix} Grand Prix"
         
-        # Fetch event schedule for the provided year
         schedule = fastf1.get_event_schedule(year)
-        event = schedule[schedule['EventName'] == grand_prix]  # Filter for the specific event
+        event = schedule[schedule['EventName'] == grand_prix]  
         
-        if event.empty:  # Check if no event matches the query
+        if event.empty:  #
             return JsonResponse({
                 "error": f"Grand Prix '{grand_prix}' not found in {year}. Available events: {schedule['EventName'].tolist()}"
             }, status=404)
 
-        # Collect relevant session data
-        session_data = {
-            "RoundNumber": int(event.iloc[0]["RoundNumber"]),  # Convert to int
+        session_data = {  
             "Country": str(event.iloc[0]["Country"]),
             "Location": str(event.iloc[0]["Location"]),
             "EventName": str(event.iloc[0]["EventName"]),
             "EventDate": str(event.iloc[0].get("EventDate", "Unknown")).split(" ")[0],
             "OfficialEventName": str(event.iloc[0].get("OfficialEventName", "Unknown")).title(),
-            "EventFormat": str(event.iloc[0].get("EventFormat", "Unknown")),
-            "SessionDates": {
-                "Practice 1": str(event.iloc[0].get("Session1Date", "")),
-                "Practice 2": str(event.iloc[0].get("Session2Date", "")),
-                "Practice 3": str(event.iloc[0].get("Session3Date", "")),
-                "Qualifying": str(event.iloc[0].get("Session4Date", "")),
-                "Race": str(event.iloc[0].get("Session5Date", "")),
-            }
         }
 
         return JsonResponse(session_data)
