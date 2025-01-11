@@ -146,19 +146,24 @@ def get_session_data(request):
             grand_prix = f"{grand_prix} Grand Prix"
         
         schedule = fastf1.get_event_schedule(year)
-        event = schedule[schedule['EventName'] == grand_prix]  
+        event = schedule[schedule['EventName'] == grand_prix]
         
-        if event.empty:  #
+        if event.empty:
             return JsonResponse({
                 "error": f"Grand Prix '{grand_prix}' not found in {year}. Available events: {schedule['EventName'].tolist()}"
             }, status=404)
 
-        session_data = {  
+        # Load the session to get total laps
+        session = fastf1.get_session(year, grand_prix, "Race")
+        session.load(laps=True)
+
+        session_data = {
             "Country": str(event.iloc[0]["Country"]),
             "Location": str(event.iloc[0]["Location"]),
             "EventName": str(event.iloc[0]["EventName"]),
             "EventDate": str(event.iloc[0].get("EventDate", "Unknown")).split(" ")[0],
             "OfficialEventName": str(event.iloc[0].get("OfficialEventName", "Unknown")).title(),
+            "TotalLaps": session.total_laps,  # Add total laps here
         }
 
         return JsonResponse(session_data)
