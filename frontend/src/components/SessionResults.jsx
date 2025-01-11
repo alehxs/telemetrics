@@ -1,57 +1,72 @@
-const formatLeaderTime = (time) => {
-  if (!time) return "N/A";
+import React, { useEffect, useState } from "react";
 
-  const formattedTime = time.replace("0 days ", "").split(".");
-  return `${formattedTime[0].replace(/^0/, "")}.${formattedTime[1]?.slice(0, 3)}`;
-};
+const SessionResults = ({ year, grandPrix }) => {
+  const [sessionData, setSessionData] = useState(null);
+  const [error, setError] = useState(null);
 
-const formatIntervalTime = (time) => {
-  if (!time) return "N/A";
+  useEffect(() => {
+    const fetchSessionData = async () => {
+      try {
+        setError(null);
+        const response = await fetch(
+          `http://127.0.0.1:8000/api/get_session_data/?year=${year}&grand_prix=${encodeURIComponent(grandPrix)}`
+        );
 
-  const match = time.match(/(\d{2}):(\d{2}):(\d{2}\.\d+)/);
-  if (!match) return "N/A";
+        if (!response.ok) {
+          throw new Error(`Failed to fetch session data: ${response.statusText}`);
+        }
 
-  const [, hours, minutes, seconds] = match;
-  const totalSeconds = parseFloat(hours) * 3600 + parseFloat(minutes) * 60 + parseFloat(seconds);
+        const data = await response.json();
+        setSessionData(data);
+      } catch (err) {
+        setError(err.message);
+        setSessionData(null);
+      }
+    };
 
-  return `+${totalSeconds.toFixed(3)}`;
-};
+    if (year && grandPrix) {
+      fetchSessionData();
+    }
+  }, [year, grandPrix]);
 
-const getDisplayTime = (driver, leaderTime, isLeader) => {
-  const { Status, Time } = driver;
-
-  if (Status.includes("+")) {
-    const match = Status.match(/\+(\d+) Lap/);
-    if (match) return `+${match[1]} Lap${match[1] > 1 ? "s" : ""}`;
-  } else if (Status !== "Finished") {
-    return "DNF";
+  if (error) {
+    return (
+      <div className="p-4 w-full max-w-md mx-auto bg-gray-100">
+        <h2 className="text-lg font-bold mb-2 text-center">Event Information</h2>
+        <div className="bg-white rounded-md shadow-md p-4">
+          <p className="text-center text-red-500">Error: {error}</p>
+        </div>
+      </div>
+    );
   }
 
-  return isLeader ? formatLeaderTime(Time) : formatIntervalTime(Time);
-};
+  if (!sessionData) {
+    return (
+      <div className="p-4 w-full max-w-md mx-auto bg-gray-100">
+        <h2 className="text-lg font-bold mb-2 text-center">Event Information</h2>
+        <div className="bg-white rounded-md shadow-md p-4">
+          <p className="text-center text-gray-500">No session data available</p>
+        </div>
+      </div>
+    );
+  }
 
-const SessionResults = ({ results }) => {
-  const leaderTime = results[0]?.Time || null;
+  const sessionInfo = [
+    { label: "Country", value: sessionData.Country },
+    { label: "Location", value: sessionData.Location },
+    { label: "Event Name", value: sessionData.EventName },
+    { label: "Event Date", value: sessionData.EventDate },
+    { label: "Official Event Name", value: sessionData.OfficialEventName },
+  ];
+
   return (
-    <div className="p-2 w-full max-w-md mx-auto bg-gray-100">
-      <h2 className="text-balance font-bold mb-2 text-center">Event Results</h2>
-      <div className="divide-y divide-gray-300 bg-white rounded-md shadow-lg">
-        {results.map((driver, index) => (
-          <div
-            key={index}
-            className={`flex items-center px-2 py-0.5 ${
-              index % 2 === 0 ? "bg-gray-100" : "bg-gray-200"
-            }`}
-          >
-            <span className="text-sm font-medium flex-[3] text-left">
-              {driver.Position || "N/A"}
-            </span>
-            <span className="text-sm flex-[3] text-center">
-              {driver.Abbreviation}
-            </span>
-            <span className="text-sm flex-[5] text-right">
-              {getDisplayTime(driver, leaderTime, index === 0)}
-            </span>
+    <div className="p-4 w-full max-w-md mx-auto bg-gray-100">
+      <h2 className="text-lg font-bold mb-2 text-center">Event Information</h2>
+      <div className="bg-white rounded-md shadow-md p-4 space-y-2">
+        {sessionInfo.map((item) => (
+          <div key={item.label} className="flex justify-between items-center">
+            <span className="font-bold">{item.label}:</span>
+            <span>{item.value}</span>
           </div>
         ))}
       </div>

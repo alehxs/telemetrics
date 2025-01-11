@@ -4,6 +4,7 @@ import GrandPrixDropdown from "./components/GrandPrixDropdown";
 import SessionDropdown from "./components/SessionDropdown";
 import SessionResults from "./components/SessionResults";
 import FastestLap from "./components/FastestLap";
+import SessionInfo  from "./components/SessionInfo";
 
 const Home = () => {
   const [selectedYear, setSelectedYear] = useState(null);
@@ -72,7 +73,14 @@ const Home = () => {
       </div>
     )}
 
+      <SessionInfo 
+        year={selectedYear} 
+        grandPrix={selectedGrandPrix} 
+        session={selectedSession} 
+      />
+    
     </div>
+    
   );
 };
 
