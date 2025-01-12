@@ -13,13 +13,17 @@ const Dropdown = ({ options, placeholder, onSelect }) => {
   const handleSearchChange = (e) => {
     const value = e.target.value.trim();
     setSearchTerm(value);
-  
+
     const newFilteredOptions = options.filter((option) => {
-      return option.toString().toLowerCase().includes(value.toLowerCase());
+      if (typeof option === "string") {
+        return option.toLowerCase().includes(value.toLowerCase());
+      } else if (typeof option === "number") {
+        return option.toString().includes(value);
+      }
+      return false; // Skip options of unsupported types
     });
-  
+
     setFilteredOptions(newFilteredOptions);
-    setIsOpen(true); 
     setHighlightedIndex(0);
   };
 
@@ -49,17 +53,6 @@ const Dropdown = ({ options, placeholder, onSelect }) => {
         e.preventDefault();
         if (filteredOptions[highlightedIndex]) {
           handleOptionClick(filteredOptions[highlightedIndex]);
-        } else if (
-          searchTerm &&
-          filteredOptions.find(
-            (option) => option.toLowerCase() === searchTerm.toLowerCase()
-          )
-        ) {
-          handleOptionClick(
-            filteredOptions.find(
-              (option) => option.toLowerCase() === searchTerm.toLowerCase()
-            )
-          );
         }
         break;
       case "Escape":
@@ -73,11 +66,8 @@ const Dropdown = ({ options, placeholder, onSelect }) => {
 
   const handleFocus = () => {
     setIsOpen(true);
-
-    const newFilteredOptions = options.filter((option) =>
-      option.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-    setFilteredOptions(newFilteredOptions);
+    setSearchTerm(""); // Clear search term when reopening dropdown
+    setFilteredOptions(options); // Reset filtered options to show all options
     setHighlightedIndex(0);
   };
 
@@ -89,8 +79,8 @@ const Dropdown = ({ options, placeholder, onSelect }) => {
         placeholder={placeholder}
         value={searchTerm}
         onChange={handleSearchChange}
-        onFocus={handleFocus} 
-        onClick={() => setIsOpen(true)}
+        onFocus={handleFocus}
+        onClick={handleFocus}
         onKeyDown={handleKeyDown}
       />
       {isOpen && filteredOptions.length > 0 && (
