@@ -30,33 +30,38 @@ const SessionInfo = ({ year, grandPrix, session }) => {
   }, [year, grandPrix, session]);
 
   if (!sessionData) {
-    return <div className="text-gray-500">Loading session information...</div>;
+    return null;
   }
 
-  const { event, session_name, drivers, total_laps, weather_data_available } = sessionData;
+  const {
+    Country = "Unknown",
+    Location = "Unknown",
+    EventName = "Unknown Event",
+    EventDate = "Unknown Date",
+    OfficialEventName = "Unknown",
+    TotalLaps = "Unknown",
+  } = sessionData;
+
+  // Convert EventDate to formatted string
+  const formatDate = (dateString) => {
+    if (!dateString) return "Unknown Date";
+    const date = new Date(dateString);
+    return date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+    });
+  };
+
+  const formattedDate = formatDate(EventDate);
 
   return (
     <div className="p-4 bg-white rounded-md shadow-md text-gray-900">
-      <h2 className="text-xl font-bold mb-2">{event.name}</h2>
-      <p className="text-sm text-gray-700">Location: {event.location}</p>
-      <p className="text-sm text-gray-700">Date: {event.date}</p>
-      <p className="text-sm text-gray-700">Session: {session_name}</p>
-      <p className="text-sm text-gray-700">
-        Total Laps: {total_laps || "Unknown"}
+      <h2 className="text-3xl font-bold mb-2">{OfficialEventName}</h2>
+      <p className="text-xl text-gray-700">
+        {Location}, {Country}
       </p>
-      <p className="text-sm text-gray-700">
-        Weather Data Available: {weather_data_available ? "Yes" : "No"}
-      </p>
-      <div className="mt-2">
-        <h3 className="text-md font-semibold">Drivers:</h3>
-        <ul className="list-disc pl-4">
-          {drivers.map((driver) => (
-            <li key={driver} className="text-sm text-gray-700">
-              {driver}
-            </li>
-          ))}
-        </ul>
-      </div>
+      <p className="text-xl text-gray-700">{formattedDate}</p>
+      <p className="text-xl text-gray-700">{TotalLaps} Laps</p>
     </div>
   );
 };
