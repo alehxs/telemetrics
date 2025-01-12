@@ -4,7 +4,7 @@ import GrandPrixDropdown from "./components/GrandPrixDropdown";
 import SessionDropdown from "./components/SessionDropdown";
 import SessionResults from "./components/SessionResults";
 import FastestLap from "./components/FastestLap";
-import SessionInfo  from "./components/SessionInfo";
+import SessionInfo from "./components/SessionInfo";
 
 const Home = () => {
   const [selectedYear, setSelectedYear] = useState(null);
@@ -36,18 +36,13 @@ const Home = () => {
   return (
     <div className="p-8">
       <div className="flex flex-wrap gap-4">
-        {/* Year Dropdown */}
         <YearDropdown onSelect={(year) => setSelectedYear(year)} />
-
-        {/* Grand Prix Dropdown */}
         {selectedYear && (
           <GrandPrixDropdown
             year={selectedYear}
             onSelect={(grandPrix) => setSelectedGrandPrix(grandPrix)}
           />
         )}
-
-        {/* Session Dropdown */}
         {selectedYear && selectedGrandPrix && (
           <SessionDropdown
             year={selectedYear}
@@ -57,30 +52,24 @@ const Home = () => {
         )}
       </div>
 
-      
-
-
-      {/* Fastest Lap */}
-      {results.length > 0 && (
       <div className="mt-8">
-        <SessionResults results={results} />
-        {/* Fastest Lap Component */}
-        <FastestLap
-          year={selectedYear}
-          grandPrix={selectedGrandPrix}
-          session={selectedSession}
+        <SessionInfo 
+          year={selectedYear} 
+          grandPrix={selectedGrandPrix} 
+          session={selectedSession} 
         />
+        {results.length > 0 && (
+          <>
+            <FastestLap
+              year={selectedYear}
+              grandPrix={selectedGrandPrix}
+              session={selectedSession}
+            />
+            <SessionResults className="text-left" results={results} />
+          </>
+        )}
       </div>
-    )}
-
-      <SessionInfo 
-        year={selectedYear} 
-        grandPrix={selectedGrandPrix} 
-        session={selectedSession} 
-      />
-    
     </div>
-    
   );
 };
 
