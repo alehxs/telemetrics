@@ -73,6 +73,8 @@ def session_results(request):
     response_data = []
 
     for _, row in results.iterrows():
+      team_logo_url = f"/static/team_logos/{row.get('TeamName', '').replace(' ', '_').lower()}.png"
+
       response_data.append({
         "DriverNumber": row.get("DriverNumber", ""),
         "BroadcastName": row.get("BroadcastName", ""),
@@ -80,6 +82,7 @@ def session_results(request):
         "Abbreviation": row.get("Abbreviation", ""),
         "TeamName": row.get("TeamName", ""),
         "TeamColor": f"#{row.get('TeamColor', 'FFFFFF')}",
+        "TeamLogoUrl": team_logo_url,
         "Position": row.get("Position", None),
         "ClassifiedPosition": row.get("ClassifiedPosition", ""),
         "GridPosition": None if pd.isna(row.get("GridPosition")) else row.get("GridPosition"),
@@ -153,7 +156,6 @@ def get_session_data(request):
                 "error": f"Grand Prix '{grand_prix}' not found in {year}. Available events: {schedule['EventName'].tolist()}"
             }, status=404)
 
-        # Load the session to get total laps
         session = fastf1.get_session(year, grand_prix, "Race")
         session.load(laps=True)
 
@@ -163,10 +165,46 @@ def get_session_data(request):
             "EventName": str(event.iloc[0]["EventName"]),
             "EventDate": str(event.iloc[0].get("EventDate", "Unknown")).split(" ")[0],
             "OfficialEventName": str(event.iloc[0].get("OfficialEventName", "Unknown")).title(),
-            "TotalLaps": session.total_laps,  # Add total laps here
+            "TotalLaps": session.total_laps,  
         }
 
         return JsonResponse(session_data)
+
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
+
+def get_podium(request):
+    year = request.GET.get('year')
+    grand_prix = request.GET.get('grand_prix')
+    session_type = request.GET.get('session')
+
+    if not (year and grand_prix and session_type):
+        return JsonResponse({"error": "Year, Grand Prix, and session type are required."}, status=400)
+
+    try:
+        session = fastf1.get_session(int(year), grand_prix, session_type)
+        session.load()
+        results = session.results
+
+        podium_data = []
+        for _, row in results.iterrows():
+            if row.get("Position") and row.get("Position") <= 3:  # Top 3
+                team_logo_url = f"/static/team_logos/{row.get('TeamName', '').replace(' ', '_').lower()}.png"
+                podium_data.append({
+                    "DriverNumber": row.get("DriverNumber", ""),
+                    "BroadcastName": row.get("BroadcastName", ""),
+                    "FullName": row.get("FullName", ""),
+                    "Abbreviation": row.get("Abbreviation", ""),
+                    "TeamName": row.get("TeamName", ""),
+                    "TeamColor": f"#{row.get('TeamColor', 'FFFFFF')}",
+                    "TeamLogoUrl": team_logo_url,
+                    "Position": row.get("Position", None),
+                    "HeadshotUrl": row.get("HeadshotUrl", None),
+                })
+
+        podium_data = sorted(podium_data, key=lambda x: x["Position"])
+
+        return JsonResponse(podium_data, safe=False)
 
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
