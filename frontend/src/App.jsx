@@ -5,6 +5,7 @@ import SessionDropdown from "./components/SessionDropdown";
 import SessionResults from "./components/SessionResults";
 import FastestLap from "./components/FastestLap";
 import SessionInfo from "./components/SessionInfo";
+import Podium from "./components/Podium";
 
 const Home = () => {
   const [selectedYear, setSelectedYear] = useState(null);
@@ -60,12 +61,20 @@ const Home = () => {
         />
         {results.length > 0 && (
           <>
-            <FastestLap
-              year={selectedYear}
-              grandPrix={selectedGrandPrix}
-              session={selectedSession}
-            />
-            <SessionResults className="text-left" results={results} />
+        <FastestLap
+          year={selectedYear}
+          grandPrix={selectedGrandPrix}
+          session={selectedSession}
+        />
+        <Podium
+          year={selectedYear}
+          grandPrix={selectedGrandPrix}
+          session={selectedSession}
+        />
+    
+
+
+        <SessionResults className="text-left" results={results} />
           </>
         )}
       </div>
