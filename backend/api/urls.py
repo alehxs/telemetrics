@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import session_results, get_session_data, get_podium
+from .views import session_results, get_session_data, get_podium, track_dominance_view
 from . import views
 from api import views
 
@@ -16,4 +16,5 @@ urlpatterns = [
 
     path('get_podium/', get_podium, name='get_podium'),
 
+    path('track_dominance/', track_dominance_view, name='track_dominance'),
 ]
