@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 const formatLeaderTime = (time) => {
   if (!time) return "N/A";
 
-  const formattedTime = time.replace("0 days ", "").split(".");
+  const formattedTime = time.replace(/0 days\s|^00:/g, "").split(".");
   const timeWithoutLeadingZeros = formattedTime[0].replace(/^0:0/, "").replace(/^0:/, "");
   return `${timeWithoutLeadingZeros}.${formattedTime[1]?.slice(0, 3)}`;
 };

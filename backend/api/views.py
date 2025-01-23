@@ -125,9 +125,13 @@ def get_fastest_lap(request):
         session.load()
 
         fastest_lap = session.laps.pick_fastest()
+        lap_time = str(fastest_lap["LapTime"])
+
+        cleaned_lap_time = lap_time.replace("0 days ", "").lstrip("00:")
+
         response_data = {
             "Driver": fastest_lap["Driver"],
-            "LapTime": str(fastest_lap["LapTime"]),
+            "LapTime": cleaned_lap_time,
             "LapNumber": fastest_lap["LapNumber"],
             "TyreCompound": fastest_lap.get("Compound", "Unknown"),
             "TyreAge": fastest_lap.get("TyreLife", "Unknown"),
