@@ -5,6 +5,7 @@ import SessionDropdown from "./components/SessionDropdown";
 import SessionResults from "./components/SessionResults";
 import FastestLap from "./components/FastestLap";
 import SessionInfo from "./components/SessionInfo";
+import TrackDominance from "./components/TrackDominance";
 import Podium from "./components/Podium";
 
 const Home = () => {
@@ -67,6 +68,12 @@ const Home = () => {
           session={selectedSession}
         />
         <Podium
+          year={selectedYear}
+          grandPrix={selectedGrandPrix}
+          session={selectedSession}
+        />
+
+        <TrackDominance
           year={selectedYear}
           grandPrix={selectedGrandPrix}
           session={selectedSession}
