@@ -1,54 +1,66 @@
-const formatLeaderTime = (time) => {
-  if (!time) return "N/A";
-  const formattedTime = time.replace("0 days ", "").split(".");
-  return `${formattedTime[0].replace(/^0/, "")}.${formattedTime[1]?.slice(0, 3)}`;
-};
-
-const formatIntervalTime = (time) => {
-  if (!time) return "N/A";
-  const match = time.match(/(\d{2}):(\d{2}):(\d{2}\.\d+)/);
-  if (!match) return "N/A";
-  const [, hours, minutes, seconds] = match;
-  const totalSeconds = parseFloat(hours) * 3600 + parseFloat(minutes) * 60 + parseFloat(seconds);
-  return `+${totalSeconds.toFixed(3)}`;
-};
-
-const getDisplayTime = (driver, leaderTime, isLeader) => {
-  const { Status, Time } = driver;
-  if (Status.includes("+")) {
-    const match = Status.match(/\+(\d+) Lap/);
-    if (match) return `+${match[1]} Lap${match[1] > 1 ? "s" : ""}`;
-  } else if (Status !== "Finished") {
-    return "DNF";
-  }
-  return isLeader ? formatLeaderTime(Time) : formatIntervalTime(Time);
-};
-
 const SessionResults = ({ results }) => {
   const leaderTime = results[0]?.Time || null;
+
+  const formatLeaderTime = (time) => {
+    if (!time) return "N/A";
+    const formattedTime = time.replace("0 days ", "").split(".");
+    return `${formattedTime[0].replace(/^0/, "")}.${formattedTime[1]?.slice(0, 3)}`;
+  };
+
+  const formatIntervalTime = (time) => {
+    if (!time) return "N/A";
+    const match = time.match(/(\d{2}):(\d{2}):(\d{2}\.\d+)/);
+    if (!match) return "N/A";
+    const [, hours, minutes, seconds] = match;
+    const totalSeconds = parseFloat(hours) * 3600 + parseFloat(minutes) * 60 + parseFloat(seconds);
+    return `+${totalSeconds.toFixed(3)}`;
+  };
+
+  const getDisplayTime = (driver, leaderTime, isLeader) => {
+    const { Status, Time } = driver;
+    if (Status.includes("+")) {
+      const match = Status.match(/\+(\d+) Lap/);
+      if (match) return `+${match[1]} Lap${match[1] > 1 ? "s" : ""}`;
+    } else if (Status !== "Finished") {
+      return "DNF";
+    }
+    return isLeader ? formatLeaderTime(Time) : formatIntervalTime(Time);
+  };
+
   return (
-    <div className="p-1 w-64 mx-auto bg-gray-100 overflow-x-auto">
-      <h2 className="text-lg font-bold mb-1 text-left">Event Results</h2>
-      <div className="divide-y divide-gray-300 bg-white rounded-md shadow-lg">
-        <div className="flex items-center px-1 py-0.5 bg-gray-300 font-semibold">
-          <span className="text-sm flex-[0.5] text-left">Position</span>
-          <span className="text-sm flex-[0.6] text-center">Driver</span>
-          <span className="text-sm flex-[1.4] text-right">Time</span>
+    <div
+      className="bg-black bg-opacity-80 w-[300px] mx-auto p-2 rounded-lg shadow-lg text-white"
+      style={{ backdropFilter: "blur(5px)" }}
+    >
+      <h2 className="text-xl font-bold mb-2 text-center font-[Formula1 Display]">
+        F1 Race Results
+      </h2>
+      <div className="divide-y divide-black">
+        <div className="flex items-center py-2 font-semibold bg-black bg-opacity-90">
+          <span className="flex-[0.3] text-center">POS</span>
+          <span className="flex-[1] text-left">DRIVER</span>
+          <span className="flex-[1] text-right">TIME</span>
         </div>
         {results.map((driver, index) => (
           <div
             key={index}
-            className={`flex items-center px-1 py-0.5 ${
-              index % 2 === 0 ? "bg-gray-100" : "bg-gray-200"
+            className={`flex items-center py-1 ${
+              index % 2 === 0 ? "bg-black bg-opacity-90" : "bg-black bg-opacity-80"
             }`}
           >
-            <span className="text-sm font-medium flex-[0.5] text-left">
+            <span className="flex-[0.3] text-center text-lg font-bold">
               {driver.Position || "N/A"}
             </span>
-            <span className="text-sm font-bold flex-[0.6] text-center">
-              {driver.Abbreviation}
+            <span className="flex-[1] text-left flex items-center gap-2">
+              {/* Commented out team logo */}
+              {/* <img
+                src={driver.TeamLogo || "/placeholder-logo.png"}
+                alt={driver.TeamName || "Team"}
+                className="w-5 h-5"
+              /> */}
+              <span>{driver.Abbreviation}</span>
             </span>
-            <span className="text-sm flex-[1.4] text-right">
+            <span className="flex-[1] text-right font-mono">
               {getDisplayTime(driver, leaderTime, index === 0)}
             </span>
           </div>
