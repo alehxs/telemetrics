@@ -14,7 +14,11 @@ from django.core.cache import cache
 from django.views.decorators.csrf import csrf_exempt
 
 matplotlib.use('Agg') 
-fastf1.Cache.enable_cache('../backend/cache')
+# fastf1.Cache.enable_cache('../backend/cache')
+
+CACHE_DIR = "/tmp/fastf1_cache"
+os.makedirs(CACHE_DIR, exist_ok=True)  
+fastf1.Cache.enable_cache(CACHE_DIR)
 
 def get_grand_prix_locations(request):
   year = request.GET.get("year")
