@@ -15,7 +15,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 load_dotenv()
-PORT = os.getenv("PORT","10000")
+# PORT = os.getenv("PORT","10000")
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -29,7 +29,8 @@ DEBUG = os.getenv('DEBUG', 'False') == 'True'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 
-ALLOWED_HOSTS = ["127.0.0.1", "localhost", 'telemetrics.onrender.com']
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '').split(',')
+ALLOWED_HOSTS = [host.strip() for host in ALLOWED_HOSTS if host]  
 
 
 # Application definition
