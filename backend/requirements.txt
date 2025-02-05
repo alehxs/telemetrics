@@ -1,5 +1,6 @@
 asgiref==3.8.1
 attrs==24.2.0
+beautifulsoup4==4.12.3
 cattrs==24.1.2
 certifi==2024.8.30
 charset-normalizer==3.4.0
@@ -21,14 +22,17 @@ pillow==11.0.0
 platformdirs==4.3.6
 pyparsing==3.2.0
 python-dateutil==2.9.0.post0
+python-dotenv==1.0.1
 pytz==2024.2
 RapidFuzz==3.10.1
 requests==2.32.3
 requests-cache==1.2.1
 scipy==1.14.1
 six==1.17.0
+soupsieve==2.6
 sqlparse==0.5.2
 timple==0.1.8
+tqdm==4.67.1
 tzdata==2024.2
 url-normalize==1.4.3
 urllib3==2.2.3
