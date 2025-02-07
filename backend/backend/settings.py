@@ -76,6 +76,11 @@ CORS_ALLOWED_ORIGINS = [
     "https://telemetrics.onrender.com",
 ]
 
+
+CSRF_TRUSTED_ORIGINS = [
+    "https://telemetrics.onrender.com"
+]
+
 ROOT_URLCONF = 'backend.urls'
 
 TEMPLATES = [
