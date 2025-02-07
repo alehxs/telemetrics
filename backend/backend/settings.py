@@ -20,6 +20,18 @@ load_dotenv()
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
+# remove later
+import logging
+
+logger = logging.getLogger(__name__)
+
+try:
+    from django.core.exceptions import ImproperlyConfigured
+except ImproperlyConfigured as e:
+    logger.error(f"Django Improperly Configured: {e}")
+    raise
+
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
