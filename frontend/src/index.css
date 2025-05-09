@@ -1,0 +1,12 @@
+@import './assets/stylesheet.css';
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  font-family: 'Formula1 Display', sans-serif;
+}
+
+.session-info-container {
+  font-family: 'Formula1 Display', sans-serif;
+}
