@@ -8,6 +8,7 @@ import SessionInfo from "./components/SessionInfo";
 import TrackDominance from "./components/TrackDominance";
 import Podium from "./components/Podium";
 import TyreStrategy from "./components/TyreStrategy";
+import LapsChart from "./components/LapsChart";
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 const Home = () => {
@@ -84,6 +85,11 @@ const Home = () => {
         <SessionResults className="text-left" results={results} />
         
         <TyreStrategy
+          year={selectedYear}
+          grandPrix={selectedGrandPrix}
+          session={selectedSession}
+        />
+        <LapsChart
           year={selectedYear}
           grandPrix={selectedGrandPrix}
           session={selectedSession}
