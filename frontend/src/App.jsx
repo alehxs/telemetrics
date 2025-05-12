@@ -26,7 +26,15 @@ const Home = () => {
               selectedGrandPrix
             )}&session=${selectedSession}`
           );
-          const data = await response.json();
+          const text = await response.text();
+          // sanitize invalid NaN literals from practice sessions
+          const sanitizedText = text.replace(/\bNaN\b/g, 'null');
+          let data = [];
+          try {
+            data = JSON.parse(sanitizedText);
+          } catch (parseError) {
+            console.error("Invalid JSON response:", text);
+          }
           setResults(data);
         } catch (error) {
           console.error("Error fetching session results:", error);
@@ -39,8 +47,8 @@ const Home = () => {
   }, [selectedYear, selectedGrandPrix, selectedSession]);
 
   return (
-    <div className="p-8">
-      <div className="flex flex-wrap gap-4">
+    <div className="max-w-screen-xl mx-auto px-4 pt-8">
+      <div className="flex flex-wrap justify-center gap-4 w-full">
         <YearDropdown onSelect={(year) => setSelectedYear(year)} />
         {selectedYear && (
           <GrandPrixDropdown
@@ -57,7 +65,7 @@ const Home = () => {
         )}
       </div>
 
-      <div className="mt-8">
+      <div className="mt-8 space-y-8 w-full">
         <SessionInfo 
           year={selectedYear} 
           grandPrix={selectedGrandPrix} 
@@ -65,38 +73,43 @@ const Home = () => {
         />
         {results.length > 0 && (
           <>
-        <FastestLap
-          year={selectedYear}
-          grandPrix={selectedGrandPrix}
-          session={selectedSession}
-        />
-        <Podium
-          year={selectedYear}
-          grandPrix={selectedGrandPrix}
-          session={selectedSession}
-        /> 
-
-        <TrackDominance
-          year={selectedYear}
-          grandPrix={selectedGrandPrix}
-          session={selectedSession}
-        />
-        
-        <SessionResults className="text-left" results={results} />
-        
-        <TyreStrategy
-          year={selectedYear}
-          grandPrix={selectedGrandPrix}
-          session={selectedSession}
-        />
+        <div className="grid items-start grid-cols-1 lg:grid-cols-[1fr_auto] gap-8">
+          {/* Left column: stacked components */}
+          <div className="flex flex-col space-y-8">
+            <Podium
+              year={selectedYear}
+              grandPrix={selectedGrandPrix}
+              session={selectedSession}
+            />
+            <FastestLap
+              year={selectedYear}
+              grandPrix={selectedGrandPrix}
+              session={selectedSession}
+            />
+            <TrackDominance
+              year={selectedYear}
+              grandPrix={selectedGrandPrix}
+              session={selectedSession}
+            />
+          </div>
+          {/* Right column: session results */}
+          <div className="space-y-8">
+            <SessionResults className="text-left" results={results} />
+          </div>
+        </div>
+        <div className="w-full">
+          <TyreStrategy
+            year={selectedYear}
+            grandPrix={selectedGrandPrix}
+            session={selectedSession}
+          />
+        </div>
         <LapsChart
           year={selectedYear}
           grandPrix={selectedGrandPrix}
           session={selectedSession}
         />
         </>
-
-          
         )}
       </div>
     </div>
