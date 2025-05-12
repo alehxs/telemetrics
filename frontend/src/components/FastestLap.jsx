@@ -1,6 +1,10 @@
 import { useState, useEffect } from "react";
-const API_BASE_URL = import.meta.env.VITE_API_URL;
+import { createClient } from "@supabase/supabase-js";
 
+const supabase = createClient(
+  import.meta.env.VITE_SUPABASE_URL,
+  import.meta.env.VITE_SUPABASE_ANON_KEY
+);
 
 const formatLeaderTime = (time) => {
   if (!time) return "N/A";
@@ -16,18 +20,20 @@ const FastestLap = ({ year, grandPrix, session }) => {
   useEffect(() => {
     const fetchFastestLap = async () => {
       try {
-        const response = await fetch(
-          `${API_BASE_URL}/api/get_fastest_lap/?year=${year}&grand_prix=${encodeURIComponent(
-            grandPrix
-          )}&session=${session}`
-        );
+        const { data, error } = await supabase
+          .from("telemetry_data")
+          .select("payload")
+          .eq("year", year)
+          .eq("grand_prix", grandPrix)
+          .eq("session", session)
+          .eq("data_type", "fastest_lap")
+          .single();
+        if (error) throw error;
 
-        if (!response.ok) {
-          throw new Error("Failed to fetch fastest lap data");
-        }
-
-        const data = await response.json();
-        setFastestLap(data);
+        // sanitize NaN if present
+        const jsonString = JSON.stringify(data.payload).replace(/\bNaN\b/g, "null");
+        const parsed = JSON.parse(jsonString);
+        setFastestLap(parsed);
       } catch (error) {
         console.error("Error fetching fastest lap:", error);
         setFastestLap(null);
@@ -52,8 +58,8 @@ const FastestLap = ({ year, grandPrix, session }) => {
   } = fastestLap;
 
   const formattedTime = formatLeaderTime(time);
-  const fastestLapSvgPath = "src/assets/svgs/fastestlap.svg";
-  const tyreSvgPath = `src/assets/svgs/${tyreCompound.toLowerCase()}tyre.svg`; 
+  const fastestLapSvgPath = "public/svgs/fastestlap.svg";
+  const tyreSvgPath = `public/svgs/${tyreCompound.toLowerCase()}tyre.svg`;
 
   return (
     <div
@@ -72,7 +78,7 @@ const FastestLap = ({ year, grandPrix, session }) => {
       </div>
       <div className="flex items-center gap-4">
         <span>LAP {lap}</span>
-        <span>Tire Life {tyreLife}</span>
+        <span>Tyre Life: {tyreLife}</span>
       </div>
     </div>
   );
