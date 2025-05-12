@@ -30,43 +30,36 @@ const SessionResults = ({ results }) => {
   };
 
   return (
-    <div
-      className="bg-black bg-opacity-80 w-[300px] mx-auto p-2 rounded-lg shadow-lg text-white"
-      style={{ backdropFilter: "blur(5px)" }}
-    >
-      <h2 className="text-xl font-bold mb-2 text-center font-[Formula1 Display]">
-        F1 Race Results
-      </h2>
-      <div className="divide-y divide-black">
-        <div className="flex items-center py-2 font-semibold bg-black bg-opacity-90">
-          <span className="flex-[0.3] text-center">POS</span>
-          <span className="flex-[1] text-left">DRIVER</span>
-          <span className="flex-[1] text-right">TIME</span>
-        </div>
-        {results.map((driver, index) => (
-          <div
-            key={index}
-            className={`flex items-center py-1 ${
-              index % 2 === 0 ? "bg-black bg-opacity-90" : "bg-black bg-opacity-80"
-            }`}
-          >
-            <span className="flex-[0.3] text-center text-lg font-bold">
-              {driver.Position || "N/A"}
-            </span>
-            <span className="flex-[1] text-left flex items-center gap-2">
-              {/* Commented out team logo */}
-              {/* <img
-                src={driver.TeamLogo || "/placeholder-logo.png"}
-                alt={driver.TeamName || "Team"}
-                className="w-5 h-5"
-              /> */}
-              <span>{driver.Abbreviation}</span>
-            </span>
-            <span className="flex-[1] text-right font-mono">
-              {getDisplayTime(driver, leaderTime, index === 0)}
-            </span>
-          </div>
-        ))}
+    <div className="w-full">
+      <h2 className="text-2xl font-bold mb-4 text-center font-[Formula1 Display]"> Session Results</h2>
+      <div className="bg-black/80 backdrop-blur-sm rounded-lg shadow text-white overflow-auto">
+        <table className="table-auto border-collapse">
+          <thead>
+            <tr className="bg-red-600">
+              <th className="px-3 py-2 text-left text-sm font-semibold">POS</th>
+              <th className="px-3 py-2 text-left text-sm font-semibold">DRIVER</th>
+              <th className="px-3 py-2 text-right text-sm font-semibold">TIME</th>
+            </tr>
+          </thead>
+          <tbody>
+            {results.map((driver, index) => (
+              <tr key={index} className={index % 2 === 0 ? "bg-gray-900 bg-opacity-60" : "bg-black bg-opacity-50"}>
+                <td className="px-3 py-2 text-left font-bold">{driver.Position || "N/A"}</td>
+                <td className="px-3 py-2 flex items-center gap-2">
+                  {driver.TeamLogo && (
+                    <img
+                      src={driver.TeamLogo}
+                      alt={driver.TeamName}
+                      className="w-5 h-5 rounded-full"
+                    />
+                  )}
+                  <span>{driver.Abbreviation}</span>
+                </td>
+                <td className="px-3 py-2 text-right font-mono">{getDisplayTime(driver, leaderTime, index === 0)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
     </div>
   );

@@ -176,7 +176,6 @@ export default function TyreStrategyChart({ year, grand_prix, session }) {
       padding: 20,
       borderRadius: 8,
       width: '100%',
-      maxWidth: 900,
       height: 500,
       margin: '0 auto'
     }}>

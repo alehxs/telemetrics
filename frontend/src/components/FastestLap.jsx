@@ -57,14 +57,22 @@ const FastestLap = ({ year, grandPrix, session }) => {
 
   return (
     <div
-      className="flex items-center gap-2 p-2 rounded-md text-md text-white"
+      className="flex items-center justify-between w-full py-2 px-4 rounded-md text-md text-white"
       style={{ backgroundColor: "#AE38E0" }}
     >
-      <img src={fastestLapSvgPath} alt="Timer icon" className="w-6 h-6" />
-      <div className="font-bold">FASTEST LAP</div> 
+      <div className="flex items-center gap-2">
+        <img src={fastestLapSvgPath} alt="Timer icon" className="w-6 h-6" />
+        <span className="font-bold">FASTEST LAP</span>
+      </div>
       <div className="flex items-center gap-2">
         <img src={tyreSvgPath} alt={`${tyreCompound} Tyre`} className="w-6 h-6" />
-        {formattedTime} - <strong>{abbreviation}</strong> LAP {lap} Tire Life {tyreLife}
+        <span>{formattedTime}</span>
+        <span>-</span>
+        <strong>{abbreviation}</strong>
+      </div>
+      <div className="flex items-center gap-4">
+        <span>LAP {lap}</span>
+        <span>Tire Life {tyreLife}</span>
       </div>
     </div>
   );

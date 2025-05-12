@@ -29,11 +29,11 @@ const Podium = ({ year, grandPrix, session }) => {
   }, [year, grandPrix, session]);
 
   return (
-    <div className="flex justify-center items-center gap-6 p-6 w-full">
+    <div className="flex justify-start items-center gap-6 py-0 px-0 w-full">
       {podiumData.map((driver, index) => (
         <div 
           key={index}
-          className="w-64 rounded-lg shadow-lg overflow-hidden backdrop-blur-sm p-6"
+          className="flex-1 rounded-lg shadow-lg overflow-hidden backdrop-blur-sm p-4"
           style={{
             backgroundColor: `${driver.TeamColor}CC`,
           }}
