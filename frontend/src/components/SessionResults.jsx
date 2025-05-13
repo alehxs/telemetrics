@@ -63,8 +63,8 @@ const SessionResults = ({ year, grandPrix, session }) => {
   return (
     <div className="w-full">
       <h2 className="text-2xl font-bold mb-4 text-center font-[Formula1 Display]"> Session Results</h2>
-      <div className="bg-black/80 backdrop-blur-sm rounded-lg shadow text-white overflow-auto">
-        <table className="table-auto border-collapse">
+      <div className="w-full overflow-x-auto bg-black/80 backdrop-blur-sm rounded-lg shadow text-white">
+        <table className="table-auto min-w-full border-collapse">
           <thead>
             <tr className="bg-red-600">
               <th className="px-3 py-2 text-left text-sm font-semibold">POS</th>

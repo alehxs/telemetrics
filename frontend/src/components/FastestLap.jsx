@@ -58,8 +58,8 @@ const FastestLap = ({ year, grandPrix, session }) => {
   } = fastestLap;
 
   const formattedTime = formatLeaderTime(time);
-  const fastestLapSvgPath = "public/svgs/fastestlap.svg";
-  const tyreSvgPath = `public/svgs/${tyreCompound.toLowerCase()}tyre.svg`;
+  const fastestLapSvgPath = "svgs/fastestlap.svg";
+  const tyreSvgPath = `svgs/${tyreCompound.toLowerCase()}tyre.svg`;
 
   return (
     <div

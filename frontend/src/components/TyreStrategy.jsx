@@ -18,7 +18,7 @@ const compoundColors = {
   UNKNOWN: '#999999'
 };
 
-export default function TyreStrategyChart({ year, grand_prix, session }) {
+export default function TyreStrategyChart({ year, grandPrix, session }) {
   const canvasRef = useRef(null);
   const chartRef  = useRef(null);
   const [tyreByLap, setTyreByLap] = useState({});
@@ -32,24 +32,26 @@ export default function TyreStrategyChart({ year, grand_prix, session }) {
         .from('telemetry_data')
         .select('payload')
         .eq('year', year)
-        .eq('grand_prix', grand_prix)
+        .eq('grand_prix', grandPrix)
         .eq('session', session)
         .eq('data_type', 'tyres')
-        .single();
-      if (tyreError) throw tyreError;
-      const entries = tyreRow.payload || [];
+        .maybeSingle();
+      // ignore "no rows" errors and treat as empty
+      if (tyreError && tyreError.code !== 'PGRST116') throw tyreError;
+      const entries = tyreRow?.payload || [];
 
       // load finishing order for drivers
       const { data: resRow, error: resError } = await supabase
         .from('telemetry_data')
         .select('payload')
         .eq('year', year)
-        .eq('grand_prix', grand_prix)
+        .eq('grand_prix', grandPrix)
         .eq('session', session)
         .eq('data_type', 'session_results')
-        .single();
-      if (resError) throw resError;
-      const finishArr = Array.isArray(resRow.payload) ? resRow.payload : [];
+        .maybeSingle();
+      // ignore "no rows" errors and treat as empty result set
+      if (resError && resError.code !== 'PGRST116') throw resError;
+      const finishArr = Array.isArray(resRow?.payload) ? resRow.payload : [];
 
       // sort by Position and map to abbreviations
       const order = finishArr
@@ -67,7 +69,7 @@ export default function TyreStrategyChart({ year, grand_prix, session }) {
       setTyreByLap(grouped);
     }
     fetchData();
-  }, [year, grand_prix, session]);
+  }, [year, grandPrix, session]);
 
   // build chart
   useEffect(() => {
@@ -94,30 +96,38 @@ export default function TyreStrategyChart({ year, grand_prix, session }) {
     // 2) find max number of stints any driver has
     const maxStints = Math.max(...Object.values(driverStints).map(s => s.length));
 
-    // 3) prepare datasets: one per stint‑index
+    // 3) prepare datasets: one per compound
     const drivers = driverOrder.length ? driverOrder : Object.keys(driverStints);
-    const datasets = Array.from({ length: maxStints }, (_, stintIdx) => {
-      // for this stintIdx, build a data array and color array
-      const data    = [];
-      const bgColor = [];
-      drivers.forEach(drv => {
-        const stint = driverStints[drv] ? driverStints[drv][stintIdx] : null;
-        if (stint) {
-          const len = stint.end - stint.start + 1;
-          data.push(len);
-          bgColor.push(compoundColors[stint.compound] || compoundColors.UNKNOWN);
-        } else {
-          data.push(0);
-          bgColor.push('rgba(0,0,0,0)');  // invisible
-        }
-      });
-      return {
-        label: `Stint ${stintIdx+1}`,
-        data,
-        backgroundColor: bgColor,
-        borderWidth: 0
-      };
-    });
+    // gather unique compounds used
+    const compounds = [
+      ...new Set(
+        Object.values(driverStints)
+          .flatMap(stints => stints.map(s => s.compound))
+      )
+    ];
+    // build one dataset per compound, omit compounds never used
+    const datasets = compounds
+      .map(compound => {
+        const img = new Image();
+        img.src = `/svgs/${compound.toLowerCase()}tyre.svg`;
+        const data = drivers.map(drv => {
+          const laps = (driverStints[drv] || [])
+            .filter(s => s.compound === compound)
+            .reduce((sum, s) => sum + (s.end - s.start + 1), 0);
+          return laps;
+        });
+        return {
+          label: compound,
+          data,
+          backgroundColor: compoundColors[compound] || compoundColors.UNKNOWN,
+          borderWidth: 0,
+          pointStyle: img,
+          pointRadius: 10,
+          barThickness: 20,
+          borderRadius: 3,
+        };
+      })
+      .filter(ds => ds.data.some(v => v > 0)); // remove unused compounds
 
     // determine the race’s total laps
     const allLapNumbers = Object.values(tyreByLap)
@@ -148,34 +158,56 @@ export default function TyreStrategyChart({ year, grand_prix, session }) {
           y: {
             stacked: true,
             title: { display: false },
-            ticks: { color: '#fff', font: { size: 14 } },
+            ticks: {
+              color: '#fff',
+              font: { size: 18 },
+              autoSkip: false,
+              maxTicksLimit: drivers.length,
+            },
             grid: { display: true, color: '#333' }
           }
         },
         plugins: {
           datalabels: {
-            color: '#fff',
+            color: '#000',
             anchor: 'center',
             align: 'center',
-            font: { size: 12 },
+            font: { size: 14, weight: 'bold' },
             formatter: value => value > 0 ? value : ''
           },
           tooltip: {
+            padding: 8,
+            titleFont: { size: 16 },
+            bodyFont: { size: 14 },
+            footerFont: { size: 12 },
             callbacks: {
               footer: items => {
                 const total = items.reduce((sum, i) => sum + i.parsed.x, 0);
-                const sets  = items.filter(i => i.parsed.x > 0).length;
-                return [`Total laps: ${total}`, `Stints: ${sets}`];
+                return `Total laps: ${total}`;
               }
-            },
-            displayFooter: true
+            }
           },
           legend: { display: false }
         },
-        interaction: { mode: 'index', intersect: false }
+        interaction: { mode: 'index', intersect: false, axis: 'y' }
       }
     });
+
+    // handle window resize
+    const handleResize = () => {
+      chartRef.current?.resize();
+    };
+    window.addEventListener('resize', handleResize);
+
+    // destroy old chart and cleanup listener on unmount or deps change
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      chartRef.current?.destroy();
+    };
   }, [tyreByLap, driverOrder]);
+
+  // dynamic container height based on driver count
+  const containerHeight = driverOrder.length * 35 + 100;
 
   // empty state
   if (!Object.keys(tyreByLap).length) {
@@ -188,7 +220,7 @@ export default function TyreStrategyChart({ year, grand_prix, session }) {
       padding: 20,
       borderRadius: 8,
       width: '100%',
-      height: 500,
+      height: containerHeight,
       margin: '0 auto'
     }}>
       <h3 style={{ color: '#fff', marginBottom: 12 }}>Tyre Strategy by Lap</h3>
