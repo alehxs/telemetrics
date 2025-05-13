@@ -3,6 +3,12 @@ import Chart from 'chart.js/auto';
 import zoomPlugin from 'chartjs-plugin-zoom';
 Chart.register(zoomPlugin);
 
+import { createClient } from '@supabase/supabase-js';
+const supabase = createClient(
+  import.meta.env.VITE_SUPABASE_URL,
+  import.meta.env.VITE_SUPABASE_ANON_KEY
+);
+
 // parse "M:SS.mmm" into seconds (float)
 function parseTime(t) {
   const [m, rest] = t.split(':');
@@ -10,7 +16,6 @@ function parseTime(t) {
   return parseInt(m, 10) * 60 + parseInt(s, 10) + parseInt(ms.padEnd(3, '0'), 10) / 1000;
 }
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 const LapsChart = ({ year, grandPrix, session = 'Race' }) => {
   const canvasRef = useRef(null);
@@ -24,20 +29,29 @@ const LapsChart = ({ year, grandPrix, session = 'Race' }) => {
   useEffect(() => {
     if (!year || !grandPrix) return;
     const fetchData = async () => {
-      // fetch lap data
-      const lapRes = await fetch(
-        `http://127.0.0.1:8000/api/lap_chart_data/?year=${year}` +
-        `&grand_prix=${encodeURIComponent(grandPrix)}` +
-        `&session=${encodeURIComponent(session)}`
-      );
-      const lapJson = await lapRes.json();
-      // fetch session results for team colors & finishing order
-      const sessRes = await fetch(
-        `http://127.0.0.1:8000/api/session_results/?year=${year}` +
-        `&grand_prix=${encodeURIComponent(grandPrix)}` +
-        `&session=${encodeURIComponent(session)}`
-      );
-      const sessJson = await sessRes.json();
+      // load lap data
+      const { data: lapRow, error: lapError } = await supabase
+        .from('telemetry_data')
+        .select('payload')
+        .eq('year', year)
+        .eq('grand_prix', grandPrix)
+        .eq('session', session)
+        .eq('data_type', 'lap_chart_data')
+        .single();
+      if (lapError) throw lapError;
+      const lapJson = lapRow.payload || { laps: [], podium: [] };
+
+      // load session results for team colors & finishing order
+      const { data: sessRow, error: sessError } = await supabase
+        .from('telemetry_data')
+        .select('payload')
+        .eq('year', year)
+        .eq('grand_prix', grandPrix)
+        .eq('session', session)
+        .eq('data_type', 'session_results')
+        .single();
+      if (sessError) throw sessError;
+      const sessJson = Array.isArray(sessRow.payload) ? sessRow.payload : [];
       // build color map and order
       const colorMap = {};
       sessJson.forEach(r => {

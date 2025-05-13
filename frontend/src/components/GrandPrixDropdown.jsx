@@ -1,5 +1,10 @@
 import { useState, useEffect } from "react";
-const API_BASE_URL = import.meta.env.VITE_API_URL;
+import { createClient } from "@supabase/supabase-js";
+
+const supabase = createClient(
+  import.meta.env.VITE_SUPABASE_URL,
+  import.meta.env.VITE_SUPABASE_ANON_KEY
+);
 import Dropdown from "./Dropdown";
 
 const GrandPrixDropdown = ({ year, onSelect }) => {
@@ -8,12 +13,13 @@ const GrandPrixDropdown = ({ year, onSelect }) => {
   useEffect(() => {
     const fetchGrandPrix = async () => {
       try {
-        const response = await fetch(
-          `${API_BASE_URL}/api/grand_prix/?year=${year}`
-        );
-        const data = await response.json();
-        const eventNames = data.map((gp) => gp.EventName).reverse();
-        setGrandPrixList(eventNames);
+        const { data, error } = await supabase
+          .from("telemetry_data")
+          .select("grand_prix")
+          .eq("year", year);
+        if (error) throw error;
+        const uniqueGP = [...new Set(data.map((item) => item.grand_prix))];
+        setGrandPrixList(uniqueGP.reverse());
       } catch (error) {
         console.error("Error fetching Grand Prix data:", error);
         setGrandPrixList([]);

@@ -2,6 +2,11 @@
 import React, { useEffect, useRef, useState } from 'react';
 import Chart from 'chart.js/auto';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
+import { createClient } from '@supabase/supabase-js';
+const supabase = createClient(
+  import.meta.env.VITE_SUPABASE_URL,
+  import.meta.env.VITE_SUPABASE_ANON_KEY
+);
 Chart.register(ChartDataLabels);
 
 const compoundColors = {
@@ -22,29 +27,36 @@ export default function TyreStrategyChart({ year, grand_prix, session }) {
   // fetch & group
   useEffect(() => {
     async function fetchData() {
-      const res = await fetch(
-        `http://127.0.0.1:8000/api/tyres/?year=${year}` +
-        `&grand_prix=${encodeURIComponent(grand_prix)}` +
-        `&session=${encodeURIComponent(session)}`
-      );
-      const raw = await res.json();
+      // load tyre data
+      const { data: tyreRow, error: tyreError } = await supabase
+        .from('telemetry_data')
+        .select('payload')
+        .eq('year', year)
+        .eq('grand_prix', grand_prix)
+        .eq('session', session)
+        .eq('data_type', 'tyres')
+        .single();
+      if (tyreError) throw tyreError;
+      const entries = tyreRow.payload || [];
 
-      // fetch finishing order for drivers
-      const res2 = await fetch(
-        `http://127.0.0.1:8000/api/session_results/?year=${year}` +
-        `&grand_prix=${encodeURIComponent(grand_prix)}` +
-        `&session=${encodeURIComponent(session)}`
-      );
-      const finishJson = await res2.json();
-      const finishArr = Array.isArray(finishJson) ? finishJson : (finishJson.data || []);
+      // load finishing order for drivers
+      const { data: resRow, error: resError } = await supabase
+        .from('telemetry_data')
+        .select('payload')
+        .eq('year', year)
+        .eq('grand_prix', grand_prix)
+        .eq('session', session)
+        .eq('data_type', 'session_results')
+        .single();
+      if (resError) throw resError;
+      const finishArr = Array.isArray(resRow.payload) ? resRow.payload : [];
+
       // sort by Position and map to abbreviations
       const order = finishArr
         .slice()
         .sort((a, b) => a.Position - b.Position)
         .map(r => r.Abbreviation);
       setDriverOrder(order);
-
-      const entries = Array.isArray(raw) ? raw : (raw.tyres || raw.data || []);
 
       const grouped = {};
       entries.forEach(({ Driver, Abbreviation, LapNumber, Compound }) => {

@@ -1,6 +1,11 @@
 import { useState, useEffect } from "react";
 import Dropdown from "./Dropdown";
-const API_BASE_URL = import.meta.env.VITE_API_URL;
+import { createClient } from "@supabase/supabase-js";
+
+const supabase = createClient(
+  import.meta.env.VITE_SUPABASE_URL,
+  import.meta.env.VITE_SUPABASE_ANON_KEY
+);
 
 const SessionDropdown = ({ year, grandPrix, onSelect }) => {
   const [sessions, setSessions] = useState([]);
@@ -8,15 +13,18 @@ const SessionDropdown = ({ year, grandPrix, onSelect }) => {
   useEffect(() => {
     const fetchSessions = async () => {
       try {
-        const response = await fetch(
-          `${API_BASE_URL}/api/sessions/?year=${year}&grand_prix=${encodeURIComponent(grandPrix)}`
-        );
+        const { data, error } = await supabase
+          .from("telemetry_data")
+          .select("session")
+          .eq("year", year)
+          .eq("grand_prix", grandPrix);
 
-        const data = await response.json();
-        const sessionValues = Object.values(data).filter((value) => value !== null && value !== "None")
-        .reverse();
+        if (error) throw error;
+        const uniqueSessions = [...new Set(data.map((item) => item.session))]
+          .filter((session) => session && session !== "None")
+          .reverse();
 
-        setSessions(sessionValues);
+        setSessions(uniqueSessions);
       } catch (error) {
         console.error("Error fetching sessions:", error);
         setSessions([]);

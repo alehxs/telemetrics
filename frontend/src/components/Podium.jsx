@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from "react";
-const API_BASE_URL = import.meta.env.VITE_API_URL;
+import { createClient } from '@supabase/supabase-js';
 
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 const Podium = ({ year, grandPrix, session }) => {
   const [podiumData, setPodiumData] = useState([]);
@@ -8,16 +11,19 @@ const Podium = ({ year, grandPrix, session }) => {
   useEffect(() => {
     const fetchPodiumData = async () => {
       try {
-        const response = await fetch(
-          `${API_BASE_URL}/api/get_podium/?year=${year}&grand_prix=${encodeURIComponent(
-            grandPrix
-          )}&session=${session}`
-        );
-        if (!response.ok) {
-          throw new Error("Failed to fetch podium data");
+        const { data: row, error } = await supabase
+          .from('telemetry_data')
+          .select('payload')
+          .eq('year', year)
+          .eq('grand_prix', grandPrix)
+          .eq('session', session)
+          .eq('data_type', 'podium')
+          .single();
+
+        if (error) {
+          throw error;
         }
-        const data = await response.json();
-        setPodiumData(data);
+        setPodiumData(row.payload || []);
       } catch (error) {
         console.error("Error fetching podium data:", error);
       }

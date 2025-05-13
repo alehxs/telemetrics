@@ -1,6 +1,37 @@
-const API_BASE_URL = import.meta.env.VITE_API_URL;
+import { useEffect, useState } from "react";
+import { createClient } from "@supabase/supabase-js";
 
-const SessionResults = ({ results }) => {
+const supabase = createClient(
+  import.meta.env.VITE_SUPABASE_URL,
+  import.meta.env.VITE_SUPABASE_ANON_KEY
+);
+
+const SessionResults = ({ year, grandPrix, session }) => {
+  const [results, setResults] = useState([]);
+
+  useEffect(() => {
+    const fetchResults = async () => {
+      try {
+        const { data, error } = await supabase
+          .from("telemetry_data")
+          .select("payload")
+          .eq("year", year)
+          .eq("grand_prix", grandPrix)
+          .eq("session", session)
+          .eq("data_type", "session_results")
+          .single();
+
+        if (error) throw error;
+        setResults(data?.payload || []);
+      } catch (err) {
+        console.error("Failed to fetch session results:", err);
+        setResults([]);
+      }
+    };
+
+    if (year && grandPrix && session) fetchResults();
+  }, [year, grandPrix, session]);
+
   const leaderTime = results[0]?.Time || null;
 
   const formatLeaderTime = (time) => {

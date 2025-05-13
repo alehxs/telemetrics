@@ -1,6 +1,10 @@
 import { useState, useEffect } from "react";
-const API_BASE_URL = import.meta.env.VITE_API_URL;
+import { createClient } from "@supabase/supabase-js";
 
+const supabase = createClient(
+  import.meta.env.VITE_SUPABASE_URL,
+  import.meta.env.VITE_SUPABASE_ANON_KEY
+);
 
 const SessionInfo = ({ year, grandPrix, session }) => {
   const [sessionData, setSessionData] = useState(null);
@@ -8,18 +12,17 @@ const SessionInfo = ({ year, grandPrix, session }) => {
   useEffect(() => {
     const fetchSessionData = async () => {
       try {
-        const response = await fetch(
-          `${API_BASE_URL}/api/get_session_data/?year=${year}&grand_prix=${encodeURIComponent(
-            grandPrix
-          )}&session=${session}`
-        );
+        const { data, error } = await supabase
+          .from("telemetry_data")
+          .select("payload")
+          .eq("year", year)
+          .eq("grand_prix", grandPrix)
+          .eq("session", session)
+          .eq("data_type", "get_session_data")
+          .single();
 
-        if (!response.ok) {
-          throw new Error("Failed to fetch session data");
-        }
-
-        const data = await response.json();
-        setSessionData(data);
+        if (error) throw error;
+        setSessionData(data.payload);
       } catch (error) {
         console.error("Error fetching session data:", error);
         setSessionData(null);

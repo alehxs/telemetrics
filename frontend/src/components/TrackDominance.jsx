@@ -11,7 +11,12 @@ function adjustHexColor(hex, percent) {
 }
 import React, { useState, useEffect, useRef } from "react";
 import Chart from "chart.js/auto";
-const API_BASE_URL = import.meta.env.VITE_API_URL;
+import { createClient } from '@supabase/supabase-js';
+
+const supabase = createClient(
+  import.meta.env.VITE_SUPABASE_URL,
+  import.meta.env.VITE_SUPABASE_ANON_KEY
+);
 
 
 const TrackDominance = ({ year, grandPrix, session }) => {
@@ -21,14 +26,16 @@ const TrackDominance = ({ year, grandPrix, session }) => {
   useEffect(() => {
     const fetchTrackDominance = async () => {
       try {
-        const res = await fetch(
-          `${API_BASE_URL}/api/track_dominance/?year=${year}` +
-          `&grand_prix=${encodeURIComponent(grandPrix)}` +
-          `&session=${encodeURIComponent(session)}`
-        );
-        if (!res.ok) throw new Error("Failed to fetch track dominance data");
-        const json = await res.json();
-        setDominanceData(json);
+        let { data, error } = await supabase
+          .from('telemetry_data')
+          .select('payload')
+          .eq('year', year)
+          .eq('grand_prix', grandPrix)
+          .eq('session', session)
+          .eq('data_type', 'track_dominance')
+          .single();
+        if (error) throw error;
+        setDominanceData(data.payload);
       } catch (err) {
         setError(err.message);
       }
