@@ -28,10 +28,7 @@ class DataTransformer:
 
     def _get_driver_headshot_url(self, driver_abbr: str) -> str:
         """Get driver headshot URL"""
-        return DRIVER_HEADSHOT_URL.format(
-            year=self.extractor.year,
-            driver=driver_abbr.upper()
-        )
+        return DRIVER_HEADSHOT_URL.format(driver=driver_abbr.upper())
 
     def _format_timedelta(self, td) -> str:
         """Format pandas Timedelta to string"""

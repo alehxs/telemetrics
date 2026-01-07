@@ -54,14 +54,26 @@ export const DEFAULT_YEAR = 2024;
 /**
  * Team logo base path
  */
-export const TEAM_LOGO_BASE_PATH = '/telemetrics/src/assets/team_logos/';
+export const TEAM_LOGO_BASE_PATH = '/telemetrics/team_logos/';
 
 /**
  * Get team logo path
  */
 export function getTeamLogoPath(teamName: string): string {
-  const formattedName = teamName.toLowerCase().replace(/\s+/g, '-');
+  const formattedName = teamName.toLowerCase().replace(/\s+/g, '_');
   return `${TEAM_LOGO_BASE_PATH}${formattedName}.png`;
+}
+
+/**
+ * Driver headshot base path
+ */
+export const DRIVER_HEADSHOT_BASE_PATH = '/telemetrics/driver_images/';
+
+/**
+ * Get driver headshot path (local images)
+ */
+export function getDriverHeadshotPath(driverAbbreviation: string): string {
+  return `${DRIVER_HEADSHOT_BASE_PATH}${driverAbbreviation.toUpperCase()}.png`;
 }
 
 /**
