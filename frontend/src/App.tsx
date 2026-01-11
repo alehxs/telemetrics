@@ -10,6 +10,7 @@ import Podium from './components/Podium';
 import TyreStrategy from './components/TyreStrategy';
 import LapsChart from './components/LapsChart';
 import ErrorBoundary from './components/ErrorBoundary';
+import Header from './components/Header';
 
 const Home = () => {
   const [selectedYear, setSelectedYear] = useState<number | null>(null);
@@ -31,6 +32,8 @@ const Home = () => {
   return (
     <ErrorBoundary>
       <div className="container mx-auto px-4 py-8">
+        <Header />
+
         {/* Dropdowns */}
         <div className="flex justify-center gap-4 mb-8">
           <YearDropdown onSelect={handleYearSelect} />
