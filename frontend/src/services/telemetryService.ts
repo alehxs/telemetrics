@@ -11,9 +11,14 @@ import type {
   GrandPrixOption,
   SessionOption,
 } from '../types/telemetry';
+import { validateYear, validateGrandPrix, validateSession, validateDataType, RateLimiter } from '../utils/sanitize';
+
+// Rate limiter: 60 requests per minute
+const rateLimiter = new RateLimiter(60, 60000);
 
 /**
  * Generic function to fetch telemetry data from Supabase
+ * Includes input validation and rate limiting
  */
 async function fetchTelemetryData<T>(
   year: number,
@@ -22,13 +27,28 @@ async function fetchTelemetryData<T>(
   dataType: DataType
 ): Promise<T | null> {
   try {
+    // Rate limiting check
+    if (!rateLimiter.canMakeRequest()) {
+      console.warn('Rate limit exceeded. Please wait before making more requests.');
+      throw new Error('Rate limit exceeded. Please try again in a moment.');
+    }
+
+    // Input validation
+    const validatedYear = validateYear(year);
+    const validatedGrandPrix = validateGrandPrix(grandPrix);
+    const validatedSession = validateSession(session);
+    const validatedDataType = validateDataType(dataType);
+
+    // Record the request
+    rateLimiter.recordRequest();
+
     const { data, error } = await supabase
       .from('telemetry_data')
       .select('payload')
-      .eq('year', year)
-      .eq('grand_prix', grandPrix)
-      .eq('session', session)
-      .eq('data_type', dataType)
+      .eq('year', validatedYear)
+      .eq('grand_prix', validatedGrandPrix)
+      .eq('session', validatedSession)
+      .eq('data_type', validatedDataType)
       .single();
 
     if (error) {

@@ -4,6 +4,9 @@ Configuration for F1 data pipeline
 import os
 from pathlib import Path
 from dotenv import load_dotenv
+import logging
+
+logger = logging.getLogger(__name__)
 
 # Load environment variables
 load_dotenv()
@@ -11,6 +14,25 @@ load_dotenv()
 # Supabase configuration
 SUPABASE_URL = os.getenv('SUPABASE_URL')
 SUPABASE_SERVICE_KEY = os.getenv('SUPABASE_SERVICE_KEY')
+
+# Validate required environment variables
+if not SUPABASE_URL or not SUPABASE_SERVICE_KEY:
+    logger.error("Missing required environment variables: SUPABASE_URL or SUPABASE_SERVICE_KEY")
+    raise ValueError("Missing required Supabase credentials. Check your .env file.")
+
+# Validate URL format
+if not SUPABASE_URL.startswith('https://'):
+    logger.error("SUPABASE_URL must use HTTPS protocol")
+    raise ValueError("Invalid SUPABASE_URL: must use HTTPS protocol")
+
+# Validate URL domain
+if not SUPABASE_URL.endswith('.supabase.co'):
+    logger.warning(f"Unexpected Supabase URL domain: {SUPABASE_URL}")
+
+# Validate service key format (basic check)
+if not SUPABASE_SERVICE_KEY.startswith('eyJ') or len(SUPABASE_SERVICE_KEY) < 100:
+    logger.error("Invalid SUPABASE_SERVICE_KEY format")
+    raise ValueError("Invalid SUPABASE_SERVICE_KEY format")
 
 # Years to process (2018-2025 = all FastF1 coverage)
 YEARS = list(range(2018, 2026))
