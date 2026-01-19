@@ -1,5 +1,6 @@
 import { useSessionResults } from '../hooks/useTelemetryData';
 import { formatLeaderTime, formatIntervalTime, getDisplayTime } from '../utils/formatters';
+import { getTeamLogoPath } from '../utils/constants';
 import type { TelemetryComponentProps } from '../types/telemetry';
 
 const SessionResults = ({ year, grandPrix, session }: TelemetryComponentProps) => {
@@ -34,9 +35,9 @@ const SessionResults = ({ year, grandPrix, session }: TelemetryComponentProps) =
                 </td>
                 <td className="px-3 py-2">
                   <div className="flex items-center gap-2">
-                    {driver.TeamLogo && (
+                    {driver.TeamName && (
                       <img
-                        src={driver.TeamLogo}
+                        src={getTeamLogoPath(driver.TeamName)}
                         alt={driver.TeamName}
                         className="w-4 h-4 rounded-full"
                       />
@@ -44,7 +45,7 @@ const SessionResults = ({ year, grandPrix, session }: TelemetryComponentProps) =
                     <span className="text-sm">{driver.Abbreviation}</span>
                   </div>
                 </td>
-                <td className="px-3 py-2 text-right font-mono text-sm">
+                <td className="px-3 py-2 text-right text-sm font-bold">
                   {getDisplayTime(driver, leaderTime, index === 0)}
                 </td>
               </tr>

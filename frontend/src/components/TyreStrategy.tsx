@@ -135,22 +135,22 @@ const TyreStrategyChart = ({ year, grandPrix, session }: TelemetryComponentProps
         scales: {
           x: {
             stacked: true,
-            title: { display: true, text: 'Laps' },
+            title: { display: true, text: 'Laps', color: '#9ca3af' },
             beginAtZero: true,
             max: totalLaps,
-            grid: { display: true, color: '#333' },
-            ticks: { stepSize: 1, color: '#ccc' },
+            grid: { display: true, color: '#374151' },
+            ticks: { stepSize: 1, color: '#9ca3af' },
           },
           y: {
             stacked: true,
             title: { display: false },
             ticks: {
               color: '#fff',
-              font: { size: 18 },
+              font: { size: 14, family: "'Formula1 Display'" },
               autoSkip: false,
               maxTicksLimit: drivers.length,
             },
-            grid: { display: true, color: '#333' },
+            grid: { display: true, color: '#374151' },
           },
         },
         plugins: {
@@ -195,22 +195,37 @@ const TyreStrategyChart = ({ year, grandPrix, session }: TelemetryComponentProps
   const containerHeight = driverOrder.length * 50 + 150;
 
   if (!Object.keys(tyreByLap).length) {
-    return <p style={{ color: '#fff' }}>Loading tyre data…</p>;
+    return (
+      <div className="bg-gray-800 rounded-lg shadow-xl border border-gray-700 overflow-hidden">
+        <div className="bg-red-600 px-4 py-3">
+          <h2
+            className="text-lg font-bold text-white"
+            style={{ fontFamily: "'Formula1 Display'" }}
+          >
+            Tyre Strategy
+          </h2>
+        </div>
+        <div className="p-4">
+          <p className="text-white">Loading tyre data…</p>
+        </div>
+      </div>
+    );
   }
 
   return (
-    <div
-      style={{
-        background: '#111',
-        padding: 20,
-        borderRadius: 8,
-        width: '100%',
-        margin: '0 auto',
-      }}
-    >
-      <h3 style={{ color: '#fff', marginBottom: 12 }}>Tyre Strategy by Lap</h3>
-      <div style={{ height: containerHeight }}>
-        <canvas ref={canvasRef} />
+    <div className="bg-gray-800 rounded-lg shadow-xl border border-gray-700 overflow-hidden">
+      <div className="bg-red-600 px-4 py-3">
+        <h2
+          className="text-lg font-bold text-white"
+          style={{ fontFamily: "'Formula1 Display'" }}
+        >
+          Tyre Strategy
+        </h2>
+      </div>
+      <div className="p-4">
+        <div style={{ height: containerHeight }}>
+          <canvas ref={canvasRef} />
+        </div>
       </div>
     </div>
   );

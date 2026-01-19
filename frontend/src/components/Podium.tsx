@@ -17,7 +17,7 @@ const Podium = ({ year, grandPrix, session }: TelemetryComponentProps) => {
             }}
           >
             {/* Team logo in background */}
-            <div className="absolute top-2 right-2 w-20 h-20 opacity-40">
+            <div className="absolute top-2 right-2 w-20 h-20">
               <img
                 src={getTeamLogoPath(driver.TeamName)}
                 alt={`${driver.TeamName} logo`}
