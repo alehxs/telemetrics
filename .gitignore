@@ -56,3 +56,12 @@ secrets.json
 dist/
 build/
 *.egg
+
+# Temporary and debug files
+backend/scrape*.py
+backend/scrapfile.py
+backend/removebg.py
+backend/test.html
+backend/f1_gp_data.json
+backend/media/
+package-lock.json
