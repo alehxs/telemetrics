@@ -1,0 +1,58 @@
+# Environment variables
+.env
+.env.local
+.env.*.local
+*.env
+backend/.env
+frontend/.env
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+*.egg-info/
+.pytest_cache/
+.coverage
+
+# Logs
+*.log
+logs/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Data and cache
+cache/
+data/
+*.sqlite
+*.db
+
+# Media
+driver_images/
+team_image/
+staticfiles/
+
+# Sensitive files
+credentials.json
+secrets.json
+*.key
+*.pem
+*.cert
+
+# Build artifacts
+dist/
+build/
+*.egg
