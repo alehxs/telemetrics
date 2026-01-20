@@ -76,10 +76,10 @@ const Dropdown = ({ options, placeholder, onSelect }: DropdownProps) => {
   };
 
   return (
-    <div className="relative w-64">
+    <div className="relative w-full md:w-56 lg:w-64">
       <input
         type="text"
-        className="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+        className="w-full px-4 py-3 md:py-2 text-base md:text-sm border border-gray-300 rounded-md shadow-sm bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
         placeholder={placeholder}
         value={searchTerm}
         onChange={handleSearchChange}
@@ -92,7 +92,7 @@ const Dropdown = ({ options, placeholder, onSelect }: DropdownProps) => {
           {filteredOptions.map((option, index) => (
             <button
               key={index}
-              className={`w-full px-4 py-2 text-left text-gray-900 ${
+              className={`w-full px-4 py-3 md:py-2 text-base md:text-sm text-left text-gray-900 ${
                 index === highlightedIndex ? 'bg-blue-100' : 'bg-white'
               } hover:bg-blue-50`}
               onMouseEnter={() => setHighlightedIndex(index)}

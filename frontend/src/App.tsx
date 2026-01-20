@@ -31,11 +31,11 @@ const Home = () => {
 
   return (
     <ErrorBoundary>
-      <div className="container mx-auto px-4 py-8">
+      <div className="w-full min-h-screen px-2 sm:px-4 md:px-6 py-4 md:py-8">
         <Header />
 
         {/* Dropdowns */}
-        <div className="flex justify-center gap-4 mb-8">
+        <div className="flex flex-col md:flex-row justify-center gap-2 md:gap-4 mb-6 md:mb-8 max-w-full md:max-w-none">
           <YearDropdown onSelect={handleYearSelect} />
 
           {selectedYear && (
@@ -56,15 +56,15 @@ const Home = () => {
 
         {/* Content - only show when all 3 are selected */}
         {selectedYear && selectedGrandPrix && selectedSession && (
-          <div className="space-y-8">
+          <div className="space-y-4 md:space-y-6 lg:space-y-8">
             <SessionInfo
               year={selectedYear}
               grandPrix={selectedGrandPrix}
               session={selectedSession}
             />
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              <div className="lg:col-span-2 space-y-8">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6 lg:gap-8">
+              <div className="lg:col-span-2 space-y-4 md:space-y-6 lg:space-y-8">
                 <Podium
                   year={selectedYear}
                   grandPrix={selectedGrandPrix}
