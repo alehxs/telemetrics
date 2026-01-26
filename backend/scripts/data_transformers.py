@@ -1,5 +1,31 @@
 """
 Transform FastF1 data into frontend-compatible JSON structures
+
+CRITICAL DATA AVAILABILITY NOTES:
+- Full telemetry/weather/position data: 2018+ ONLY
+- Pre-2018: Limited session results only (via Ergast API)
+- Data available 30-120 minutes post-session
+
+YEAR-SPECIFIC DIFFERENCES (2018-2025):
+1. Sprint Qualifying Format:
+   - 2021-2022: Race format (no Q1/Q2/Q3 times)
+   - 2024+: Qualifying format (has Q1/Q2/Q3 times)
+
+2. Tyre Compounds:
+   - API only shows SOFT/MEDIUM/HARD (NOT C-numbers)
+   - Physical compound varies by race (C1-C5, sometimes C0 or C6)
+   - C-number mapping requires external Pirelli data
+
+3. Known Issues:
+   - 2022: Server infrastructure issues (mostly resolved)
+   - Individual races may have quirks (e.g., 2024 Sao Paulo GP)
+   - Ergast API deprecated (end of 2024) - using Jolpica-F1
+
+DATA QUALITY PHILOSOPHY:
+- Minimal ML/prediction usage
+- Only generates data with "mostly absolute certainty"
+- Missing sector times calculated mathematically
+- Rare case: Full laps generated only for first-lap crashes
 """
 import pandas as pd
 import numpy as np
@@ -36,8 +62,60 @@ class DataTransformer:
             return "DNF"
         return str(td)
 
+    def _format_gap_time(self, td) -> str:
+        """Format time gap as seconds with + prefix (e.g., '+4.705')
+        Format: +S.mmm where mmm is milliseconds (3 digits)
+        """
+        if pd.isna(td):
+            return "DNF"
+        # Convert to seconds and format with 3 decimal places
+        total_seconds = td.total_seconds()
+        return f"+{total_seconds:.3f}"
+
+    def _format_lap_time(self, td) -> str:
+        """Format lap/race time as MM:SS.mmm or H:MM:SS.mmm
+        Format: MM:SS.mmm where MM=minutes, SS=seconds, mmm=milliseconds (3 digits)
+        For times over 1 hour: H:MM:SS.mmm
+        Examples: 01:18.336 or 1:32:18.336
+        """
+        if pd.isna(td):
+            return "DNF"
+
+        total_seconds = td.total_seconds()
+        hours = int(total_seconds // 3600)
+        minutes = int((total_seconds % 3600) // 60)
+        seconds = total_seconds % 60
+
+        # If over 1 hour, include hours
+        if hours > 0:
+            return f"{hours}:{minutes:02d}:{seconds:06.3f}"
+        else:
+            # Format as MM:SS.mmm (2 digit minutes, 2 digit seconds, 3 digit milliseconds)
+            return f"{minutes:02d}:{seconds:06.3f}"
+
     def _get_compound_name(self, compound) -> str:
-        """Get tyre compound name"""
+        """Get tyre compound name
+
+        IMPORTANT LIMITATIONS:
+        - FastF1 API only provides SOFT/MEDIUM/HARD labels (NOT C-numbers like C1-C5)
+        - The same physical compound (e.g., C3) can be labeled differently at different tracks
+        - Pirelli selects 3 compounds per race and labels them as Soft/Medium/Hard
+        - To get C-number mappings, you need external Pirelli pre-race announcements
+
+        Historical Context:
+        - 2018: Old names (Ultrasoft, Supersoft, etc.) → simplified to SOFT/MEDIUM/HARD
+        - 2019-2022: C1-C5 system (C1=hardest, C5=softest)
+        - 2023: Extended to C0-C5 (C0 never used)
+        - 2024: Back to C1-C5
+        - 2025: Extended to C1-C6 (C6=ultra-soft)
+        - 2026: Back to C1-C5
+
+        Args:
+            compound: Compound code from FastF1 API
+
+        Returns:
+            Normalized compound name (SOFT/MEDIUM/HARD/INTERMEDIATE/WET/UNKNOWN)
+        """
         if pd.isna(compound):
             return "UNKNOWN"
         compound_map = {
@@ -89,16 +167,27 @@ class DataTransformer:
 
             team_name = self._normalize_team_name(row.get('TeamName', 'Unknown'))
             abbr = str(row.get('Abbreviation', 'UNK'))
+            position = int(row['Position'])
+
+            # Format time based on position:
+            # - P1: Total race time (not shown in frontend, replaced with "Leader")
+            # - P2/P3: Gap to leader (formatted as +X.XXX seconds)
+            # - DNF: "DNF"
+            time_value = row.get('Time', pd.NaT)
+            if position == 1:
+                formatted_time = self._format_timedelta(time_value)
+            else:
+                formatted_time = self._format_gap_time(time_value)
 
             entry = {
-                'Position': int(row['Position']),
+                'Position': position,
                 'Abbreviation': abbr,
                 'TeamName': team_name,
                 'TeamColor': f"#{row.get('TeamColor', 'CCCCCC')}",
                 'TeamLogo': self._get_team_logo_path(team_name),
                 'HeadshotUrl': self._get_driver_headshot_url(abbr),
                 'Status': str(row.get('Status', 'Finished')),
-                'Time': self._format_timedelta(row.get('Time', pd.NaT))
+                'Time': formatted_time
             }
             podium.append(entry)
 
@@ -114,7 +203,7 @@ class DataTransformer:
 
         return {
             'Driver': str(fastest.get('Driver', 'UNK')),
-            'LapTime': self._format_timedelta(fastest.get('LapTime', pd.NaT)),
+            'LapTime': self._format_lap_time(fastest.get('LapTime', pd.NaT)),
             'LapNumber': int(fastest.get('LapNumber', 0)),
             'TyreAge': int(fastest.get('TyreLife', 0)) if pd.notna(fastest.get('TyreLife')) else 0,
             'TyreCompound': self._get_compound_name(fastest.get('Compound'))
