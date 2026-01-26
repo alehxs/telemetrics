@@ -39,7 +39,7 @@ const SessionResults = ({ year, grandPrix, session }: TelemetryComponentProps) =
                       <img
                         src={getTeamLogoPath(driver.TeamName)}
                         alt={driver.TeamName}
-                        className="w-4 h-4 rounded-full"
+                        className="w-6 h-4 object-contain"
                       />
                     )}
                     <span className="text-sm">{driver.Abbreviation}</span>
