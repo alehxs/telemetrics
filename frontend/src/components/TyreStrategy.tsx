@@ -214,13 +214,36 @@ const TyreStrategyChart = ({ year, grandPrix, session }: TelemetryComponentProps
 
   return (
     <div className="bg-gray-800 rounded-lg shadow-xl overflow-hidden">
-      <div className="bg-red-600 px-4 py-3">
+      <div className="bg-red-600 px-4 py-3 flex items-center justify-between">
         <h2
           className="text-lg font-bold text-white"
           style={{ fontFamily: "'Formula1 Display'" }}
         >
           Tyre Strategy
         </h2>
+        <div className="group relative">
+          <svg
+            className="w-5 h-5 text-white cursor-help"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
+          </svg>
+          <div className="absolute right-0 top-8 hidden group-hover:block bg-gray-900 text-white text-xs rounded-lg p-3 w-64 z-10 border border-gray-600 shadow-xl">
+            <p className="font-semibold mb-1">Tyre Compound Labels</p>
+            <p className="text-gray-300">
+              Compounds shown as SOFT/MEDIUM/HARD (Pirelli's race-weekend labels).
+              C-numbers (C1-C5) not available via API - the same physical compound may be
+              labeled differently at different tracks.
+            </p>
+          </div>
+        </div>
       </div>
       <div className="p-4">
         <div style={{ height: containerHeight }}>
