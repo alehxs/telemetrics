@@ -70,6 +70,11 @@ const LapsChart = ({ year, grandPrix, session }: TelemetryComponentProps) => {
   useEffect(() => {
     if (!data || !canvasRef.current) return;
 
+    const lapData = Array.isArray(data.laps) ? data.laps : [];
+
+    // Don't render chart if no data
+    if (lapData.length === 0) return;
+
     // Vertical hover line plugin
     const verticalLinePlugin = {
       id: 'verticalLine',
@@ -90,8 +95,6 @@ const LapsChart = ({ year, grandPrix, session }: TelemetryComponentProps) => {
         }
       },
     };
-
-    const lapData = Array.isArray(data.laps) ? data.laps : [];
 
     // Compute static y-axis bounds
     const times = lapData.map((l) => parseTime(l.lapTime));
@@ -278,6 +281,24 @@ const LapsChart = ({ year, grandPrix, session }: TelemetryComponentProps) => {
   };
 
   const lapData = data && Array.isArray(data.laps) ? data.laps : [];
+
+  // Check if we have any lap data
+  if (!data || lapData.length === 0) {
+    return (
+      <div className="bg-gray-800 rounded-lg shadow-xl border border-gray-700 p-5">
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-lg font-bold text-white">Lap Times Chart</h3>
+        </div>
+        <div className="bg-gray-900 rounded-lg p-4 flex items-center justify-center" style={{ height: 400 }}>
+          <p className="text-gray-400 text-center">
+            Lap times data not available for this session.
+            <br />
+            <span className="text-sm text-gray-500">Lap data may not be available for this race.</span>
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-gray-800 rounded-lg shadow-xl border border-gray-700 p-5">

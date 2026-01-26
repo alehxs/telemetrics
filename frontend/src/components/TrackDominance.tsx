@@ -110,6 +110,22 @@ const TrackDominance = ({ year, grandPrix, session }: TelemetryComponentProps) =
   if (error) return <div className="text-red-400">Error loading track dominance data</div>;
   if (loading || !dominanceData || !dominanceData.drivers) return <p className="text-gray-400">Loading track dominance...</p>;
 
+  // Check if segments data is available
+  if (!dominanceData.segments || dominanceData.segments.length === 0) {
+    return (
+      <div className="bg-gray-800 rounded-lg shadow-xl border border-gray-700 p-4">
+        <h3 className="text-lg font-bold text-white mb-4">Track Dominance</h3>
+        <div className="bg-white rounded-lg p-4 flex items-center justify-center" style={{ minHeight: '300px' }}>
+          <p className="text-gray-500 text-center">
+            Track dominance data not available for this session.
+            <br />
+            <span className="text-sm">Telemetry data may not be available for this race.</span>
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="bg-gray-800 rounded-lg shadow-xl border border-gray-700 p-4">
       <h3 className="text-lg font-bold text-white mb-4">Track Dominance</h3>
