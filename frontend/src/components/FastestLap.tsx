@@ -23,7 +23,7 @@ const FastestLap = ({ year, grandPrix, session }: TelemetryComponentProps) => {
   const tyreSvgPath = getTyreSvgPath(tyreCompound);
 
   return (
-    <div className="bg-gray-800 rounded-lg shadow-xl border border-gray-700 overflow-hidden">
+    <div className="bg-gray-800 rounded-lg shadow-xl overflow-hidden">
       <div
         className="px-4 py-3"
         style={{ backgroundColor: F1_COLORS.FASTEST_LAP }}

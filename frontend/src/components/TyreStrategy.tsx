@@ -196,7 +196,7 @@ const TyreStrategyChart = ({ year, grandPrix, session }: TelemetryComponentProps
 
   if (!Object.keys(tyreByLap).length) {
     return (
-      <div className="bg-gray-800 rounded-lg shadow-xl border border-gray-700 overflow-hidden">
+      <div className="bg-gray-800 rounded-lg shadow-xl overflow-hidden">
         <div className="bg-red-600 px-4 py-3">
           <h2
             className="text-lg font-bold text-white"
@@ -213,7 +213,7 @@ const TyreStrategyChart = ({ year, grandPrix, session }: TelemetryComponentProps
   }
 
   return (
-    <div className="bg-gray-800 rounded-lg shadow-xl border border-gray-700 overflow-hidden">
+    <div className="bg-gray-800 rounded-lg shadow-xl overflow-hidden">
       <div className="bg-red-600 px-4 py-3">
         <h2
           className="text-lg font-bold text-white"
