@@ -50,7 +50,11 @@ const Podium = ({ year, grandPrix, session }: TelemetryComponentProps) => {
 
                   {/* Status/Time */}
                   <div className="text-base md:text-sm font-semibold opacity-90 drop-shadow">
-                    {driver.Status || driver.Time}
+                    {driver.Position === 1
+                      ? 'Leader'
+                      : driver.Status === 'Finished'
+                        ? driver.Time
+                        : driver.Status}
                   </div>
                 </div>
               </div>
