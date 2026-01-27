@@ -20,6 +20,46 @@ A TypeScript-powered React application for visualizing Formula 1 race telemetry 
 ![Dashboard Overview](./docs/screenshots/dashboard.png)
 *Full dashboard view showing all telemetry components*
 
+## ⚠️ Data Availability & Limitations
+
+### Timeline-Based Data Coverage
+
+**Full Data (2018-2025):**
+- ✅ Complete telemetry (speed, RPM, gear, position, DRS)
+- ✅ Weather data (updated per minute)
+- ✅ Lap timing and position data
+- ✅ Tyre compound information
+- ⏱️ Data available 30-120 minutes post-session
+
+**Limited Data (Pre-2018):**
+- ❌ No telemetry, weather, or position data
+- ✅ Only basic session results (via Ergast API)
+
+### Known Data Differences
+
+**Tyre Compounds:**
+- API provides **SOFT/MEDIUM/HARD** labels only (NOT C-numbers like C1-C5)
+- The same physical compound (e.g., C3) may be labeled differently at different tracks
+- Pirelli selects 3 compounds per race and labels them as Soft/Medium/Hard
+- C-number mappings require external Pirelli pre-race announcements
+
+**Sprint Qualifying Format:**
+- 2021-2022: Race format (no Q1/Q2/Q3 segment times)
+- 2024+: Qualifying format (includes Q1/Q2/Q3 segment times)
+- FastF1 library handles format differences automatically
+
+**API Changes:**
+- Ergast API deprecated (end of 2024)
+- Using Jolpica-F1 API as replacement: `https://api.jolpi.ca/ergast/f1`
+- Configurable via `USE_JOLPICA_F1_API` environment variable
+
+**Year-Specific Issues:**
+- 2022: Some sessions had temporary server infrastructure issues (mostly resolved)
+- Individual races may have quirks (e.g., 2024 São Paulo GP qualifying)
+- Pipeline includes retry logic and error handling for known issues
+
+> 💡 For detailed technical information about data discrepancies, see the inline documentation in `backend/scripts/data_transformers.py` and `fastf1_extractor.py`
+
 ## 🚀 Quick Start
 
 ### Prerequisites
