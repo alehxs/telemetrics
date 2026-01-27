@@ -48,6 +48,12 @@ SESSION_TYPES = [
     'Race'
 ]
 
+# FastF1 API Configuration
+# Ergast API shut down at end of 2024 - use Jolpica-F1 as replacement
+# Set to True to use Jolpica-F1 API instead of deprecated Ergast API
+USE_JOLPICA_F1_API = os.getenv('USE_JOLPICA_F1_API', 'true').lower() == 'true'
+JOLPICA_F1_BASE_URL = "https://api.jolpi.ca/ergast/f1"
+
 # Data types to generate
 DATA_TYPES = [
     'session_results',
