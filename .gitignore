@@ -65,3 +65,12 @@ backend/test.html
 backend/f1_gp_data.json
 backend/media/
 package-lock.json
+
+# Documentation - Exclude development/implementation docs
+# Keep: README.md, PRD.md, SECURITY*.md files
+*_IMPLEMENTATION.md
+*_GUIDE.md
+*_TESTING*.md
+backend/*_GUIDE.md
+backend/*_TESTING*.md
+backend/*_IMPLEMENTATION.md
