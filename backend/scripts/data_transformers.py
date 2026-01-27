@@ -127,23 +127,80 @@ class DataTransformer:
         }
         return compound_map.get(str(compound).upper(), 'UNKNOWN')
 
+    def _normalize_status(self, row, leader_laps: int, driver_laps: int) -> str:
+        """Normalize status based on classification and lap count
+
+        Args:
+            row: DataFrame row with driver data
+            leader_laps: Maximum lap count (leader's lap count)
+            driver_laps: Lap count for this driver
+
+        Returns:
+            Normalized status string
+        """
+        classified_pos = str(row.get('ClassifiedPosition', ''))
+        status = str(row.get('Status', 'Unknown'))
+
+        # Handle disqualifications and exclusions
+        if classified_pos in ['D', 'E']:
+            return 'DSQ'
+
+        # Handle withdrawn
+        if classified_pos == 'W':
+            return 'DNF'
+
+        # Handle not classified (treat as DNF)
+        if classified_pos == 'N':
+            return 'DNF'
+
+        # Handle retirements - show specific reason if available
+        if classified_pos == 'R':
+            # Keep specific reason if available (e.g., "Accident", "Engine", "Gearbox")
+            # Otherwise default to "DNF"
+            if status and status not in ['Finished', 'Unknown', '']:
+                return status
+            return 'DNF'
+
+        # Handle classified finishers
+        if driver_laps > 0 and leader_laps > 0:
+            lap_deficit = int(leader_laps - driver_laps)
+            if lap_deficit > 0:
+                return f"+{lap_deficit} Lap" if lap_deficit == 1 else f"+{lap_deficit} Laps"
+
+        # Default to Finished
+        return 'Finished'
+
     def transform_session_results(self) -> List[Dict[str, Any]]:
         """
         Transform session results (race/qualifying standings)
         """
         results = self.extractor.get_driver_standings()
 
+        # Calculate lap counts from session laps data
+        lap_counts = {}
+        leader_laps = 0
+        try:
+            laps = self.extractor.get_laps()
+            if not laps.empty:
+                # Count laps per driver (max lap number they completed)
+                lap_counts = laps.groupby('Driver')['LapNumber'].max().to_dict()
+                leader_laps = max(lap_counts.values()) if lap_counts else 0
+        except Exception as e:
+            logger.warning(f"Could not calculate lap counts: {e}")
+
         session_results = []
         for _, row in results.iterrows():
             team_name = self._normalize_team_name(row.get('TeamName', 'Unknown'))
+            driver_abbr = str(row.get('Abbreviation', 'UNK'))
+            driver_laps = lap_counts.get(driver_abbr, 0)
 
             entry = {
                 'Position': int(row['Position']) if pd.notna(row['Position']) else 999,
-                'Abbreviation': str(row.get('Abbreviation', 'UNK')),
+                'Abbreviation': driver_abbr,
                 'TeamName': team_name,
                 'TeamLogo': self._get_team_logo_path(team_name),
                 'TeamColor': f"#{row.get('TeamColor', 'CCCCCC')}",
-                'Status': str(row.get('Status', 'Unknown')),
+                'Status': self._normalize_status(row, leader_laps, driver_laps),
                 'Time': self._format_timedelta(row.get('Time', pd.NaT)),
                 'DriverNumber': str(row.get('DriverNumber', '')),
                 'Points': int(row.get('Points', 0)) if pd.notna(row.get('Points')) else 0
