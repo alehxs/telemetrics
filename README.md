@@ -1,6 +1,6 @@
 # Telemetrics - F1 Telemetry Visualization Dashboard
 
-A TypeScript-powered React application for visualizing Formula 1 race telemetry data, including lap times, tyre strategies, track dominance, and session results.
+TypeScript-powered React application for visualizing Formula 1 telemetry data, lap times, tyre strategies, and track dominance.
 
 ![Formula 1](https://img.shields.io/badge/Formula%201-2024-red)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue)
@@ -10,12 +10,12 @@ A TypeScript-powered React application for visualizing Formula 1 race telemetry 
 ## 🏎️ Features
 
 - **Session Results** - Race and qualifying standings with gap to leader
-- **Podium Display** - Top 3 finishers with driver photos and glassmorphism UI
-- **Fastest Lap** - Fastest lap information with tyre compound and age
-- **Track Dominance** - Visual representation of fastest driver per track segment (top 2 finishers)
-- **Tyre Strategy** - Stacked bar chart showing tyre usage per driver
-- **Lap Times Chart** - Interactive zoomable line chart of all lap times
-- **Responsive Design** - Works on desktop, tablet, and mobile
+- **Podium Display** - Top 3 finishers with driver photos
+- **Fastest Lap** - Fastest lap with tyre compound and age
+- **Track Dominance** - Fastest driver per track segment (top 2 finishers)
+- **Tyre Strategy** - Stacked bar chart of tyre usage per driver
+- **Lap Times Chart** - Interactive zoomable chart of all lap times
+- **Responsive Design** - Desktop, tablet, and mobile support
 
 ![Dashboard Overview](./docs/screenshots/dashboard.png)
 *Full dashboard view showing all telemetry components*
@@ -25,40 +25,24 @@ A TypeScript-powered React application for visualizing Formula 1 race telemetry 
 ### Timeline-Based Data Coverage
 
 **Full Data (2018-2025):**
-- ✅ Complete telemetry (speed, RPM, gear, position, DRS)
-- ✅ Weather data (updated per minute)
-- ✅ Lap timing and position data
-- ✅ Tyre compound information
-- ⏱️ Data available 30-120 minutes post-session
+- Complete telemetry (speed, RPM, gear, position, DRS)
+- Weather data (updated per minute)
+- Lap timing and position data
+- Tyre compound information
+- Data available 30-120 minutes post-session
 
 **Limited Data (Pre-2018):**
-- ❌ No telemetry, weather, or position data
-- ✅ Only basic session results (via Ergast API)
+- No telemetry, weather, or position data
+- Only basic session results (via Ergast API)
 
-### Known Data Differences
+### Known Limitations
 
-**Tyre Compounds:**
-- API provides **SOFT/MEDIUM/HARD** labels only (NOT C-numbers like C1-C5)
-- The same physical compound (e.g., C3) may be labeled differently at different tracks
-- Pirelli selects 3 compounds per race and labels them as Soft/Medium/Hard
-- C-number mappings require external Pirelli pre-race announcements
+- **Tyre Compounds**: API provides SOFT/MEDIUM/HARD labels only (not C-numbers like C1-C5)
+- **Sprint Qualifying**: Format changed in 2024 (2021-2022: race format, 2024+: qualifying format)
+- **API**: Using Jolpica-F1 replacement for deprecated Ergast API
+- **2022 Data**: Some sessions have infrastructure issues (retry logic enabled)
 
-**Sprint Qualifying Format:**
-- 2021-2022: Race format (no Q1/Q2/Q3 segment times)
-- 2024+: Qualifying format (includes Q1/Q2/Q3 segment times)
-- FastF1 library handles format differences automatically
-
-**API Changes:**
-- Ergast API deprecated (end of 2024)
-- Using Jolpica-F1 API as replacement: `https://api.jolpi.ca/ergast/f1`
-- Configurable via `USE_JOLPICA_F1_API` environment variable
-
-**Year-Specific Issues:**
-- 2022: Some sessions had temporary server infrastructure issues (mostly resolved)
-- Individual races may have quirks (e.g., 2024 São Paulo GP qualifying)
-- Pipeline includes retry logic and error handling for known issues
-
-> 💡 For detailed technical information about data discrepancies, see the inline documentation in `backend/scripts/data_transformers.py` and `fastf1_extractor.py`
+> For detailed technical information, see inline documentation in `backend/scripts/data_transformers.py` and `fastf1_extractor.py`
 
 ## 🚀 Quick Start
 
@@ -108,22 +92,14 @@ CREATE TABLE telemetry_data (
   session TEXT NOT NULL,
   data_type TEXT NOT NULL,
   payload JSONB NOT NULL,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
 CREATE UNIQUE INDEX idx_unique_telemetry
   ON telemetry_data(year, grand_prix, session, data_type);
-
--- Enable RLS
-ALTER TABLE telemetry_data ENABLE ROW LEVEL SECURITY;
-
--- Allow anonymous read access
-CREATE POLICY "Allow anonymous read access"
-  ON telemetry_data FOR SELECT USING (true);
 ```
 
-> 💡 **Full schema**: See `backend/setup_database.sql` for complete database setup with all indexes and policies.
+> See `backend/setup_database.sql` for full schema with RLS policies
 
 ### 5. Run Development Server
 
@@ -146,14 +122,13 @@ npm run preview  # Preview production build
 - **React 18.3** with TypeScript
 - **Vite 6** - Build tool & dev server
 - **Tailwind CSS 3.4** - Styling
-- **Chart.js 4.4** with plugins (zoom, datalabels)
-- **Supabase JS Client** - Real-time database
+- **Chart.js 4.4** - Zoom & datalabels plugins
+- **Supabase** - Real-time database
 
 ### Backend & Data
 - **Python 3.8+** with FastF1 library
 - **Supabase (PostgreSQL)** - Database + REST API
 - **Pandas & NumPy** - Data processing
-- **JSONB** - Flexible telemetry storage
 
 ### Data Flow
 ```
@@ -163,7 +138,7 @@ FastF1 API → Python Pipeline → Supabase (JSONB) → React Frontend
 
 ## 📊 Data Pipeline (Optional)
 
-The pipeline fetches F1 telemetry from FastF1 (2018-2025) and stores it in Supabase for instant frontend access.
+Fetches F1 telemetry from FastF1 (2018-2025) and stores it in Supabase.
 
 ### Setup Python Environment
 
@@ -188,22 +163,19 @@ python main_pipeline.py --year 2024 --gp "Monaco" --session "Race"
 ```
 
 **Full pipeline (all years 2018-2025):**
-⚠️ Takes 6-8 hours, processes ~576 sessions
+Takes 6-8 hours, processes ~576 sessions
 ```bash
 python main_pipeline.py
 ```
 
 **Filter options:**
 ```bash
-python main_pipeline.py --year 2024                  # Single year
-python main_pipeline.py --gp "Monaco"                # Specific GP
-python main_pipeline.py --session "Race"             # Session type
-python main_pipeline.py --year 2024 --session "Race" # Combined
+python main_pipeline.py --year 2024 --gp "Monaco" --session "Race"  # Filters: year, GP, session
 ```
 
 ### Data Types Generated
 
-Each session produces 7 data types for the frontend:
+Pipeline generates 7 data types per session:
 
 | Data Type | Component | Description |
 |-----------|-----------|-------------|
@@ -215,13 +187,7 @@ Each session produces 7 data types for the frontend:
 | `tyres` | TyreStrategy | Tyre compounds per lap |
 | `lap_chart_data` | LapsChart | All lap times for visualization |
 
-> 📘 **Detailed docs**: See [PRD.md](PRD.md) for complete data schemas and transformation logic.
-
-**Pipeline Troubleshooting:**
-- **"Missing credentials"**: Check `backend/.env` has service role key (not anon key)
-- **"Failed to load session"**: Some sessions lack data in FastF1, pipeline skips and continues
-- **"Unique constraint violation"**: Data exists, pipeline auto-updates via upsert
-- **Slow performance**: First run caches data locally, ~30-60s per session
+> Detailed docs: See [PRD.md](PRD.md) for complete data schemas and transformation logic
 
 ## 🏗️ Project Structure
 
@@ -273,30 +239,26 @@ python main_pipeline.py --gp "Monaco"  # Specific Grand Prix
 
 ### GitHub Pages
 
-1. Update `vite.config.ts` with your repo name:
-   ```typescript
-   base: '/your-repo-name/'
-   ```
+Update `vite.config.ts` with your repo name, then build and deploy:
 
-2. Build and deploy:
-   ```bash
-   npm run build
-   npm run deploy
-   ```
+```bash
+npm run build
+npm run deploy
+```
 
-Site will be available at: `https://username.github.io/your-repo-name/`
+Site: `https://username.github.io/your-repo-name/`
 
 ## 🐛 Troubleshooting
 
-### Frontend Issues
-- **Dropdowns empty**: Check `.env` has correct Supabase credentials, verify table has data
-- **Charts not rendering**: Ensure data format matches schemas (see PRD.md), check Chart.js plugins installed
-- **Build fails**: Run `npm install`, check TypeScript with `npx tsc --noEmit`
+**Frontend:**
+- **Dropdowns empty** - Check `.env` credentials, verify table has data
+- **Charts not rendering** - Verify data schemas (see PRD.md), check Chart.js plugins
+- **Build fails** - Run `npm install`, check `npx tsc --noEmit`
 
-### Backend Pipeline Issues
-- **Credentials error**: Use service role key in `backend/.env`, not anon key
-- **Session load failures**: Some historical sessions lack FastF1 data, pipeline continues automatically
-- **Slow performance**: FastF1 caches locally after first fetch (~30-60s per session)
+**Backend Pipeline:**
+- **Credentials error** - Use service role key (not anon key) in `backend/.env`
+- **Session load failures** - Some sessions lack FastF1 data, pipeline auto-skips
+- **Slow performance** - First run caches locally (~30-60s per session)
 
 ## 📚 Documentation
 
@@ -307,11 +269,7 @@ Site will be available at: `https://username.github.io/your-repo-name/`
 
 ## 🤝 Contributing
 
-1. Fork the repository
-2. Create a feature branch: `git checkout -b feature/amazing-feature`
-3. Commit changes: `git commit -m 'Add amazing feature'`
-4. Push to branch: `git push origin feature/amazing-feature`
-5. Open a Pull Request
+Fork the repository, create a feature branch, commit changes, and open a Pull Request.
 
 ## 📝 License
 
@@ -319,10 +277,10 @@ MIT License - See LICENSE file for details
 
 ## 🙏 Acknowledgments
 
-- [FastF1](https://github.com/theOehrly/Fast-F1) - Excellent F1 data library
-- [Supabase](https://supabase.com) - Amazing backend-as-a-service
-- Formula 1 for the thrilling sport
+- [FastF1](https://github.com/theOehrly/Fast-F1) - F1 data library
+- [Supabase](https://supabase.com) - Backend-as-a-service
+- Formula 1
 
 ---
 
-**Built with ❤️ for F1 fans**
+**Built for F1 fans**
