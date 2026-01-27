@@ -38,7 +38,7 @@ export function formatIntervalTime(time: string | null | undefined): string {
 
 /**
  * Get display time for a driver based on their status
- * Handles finished, DNF, and lapped drivers
+ * Handles finished, DNF, lapped drivers, and disqualifications
  */
 export function getDisplayTime(
   driver: Driver,
@@ -47,18 +47,25 @@ export function getDisplayTime(
 ): string {
   const { Status, Time } = driver;
 
-  // Handle lapped drivers
+  // Handle lapped drivers - support both "+1 Lap" and "+ 1 Lap" formats
   if (Status.includes('+')) {
-    const match = Status.match(/\+(\d+) Lap/);
+    const match = Status.match(/\+\s*(\d+)\s+Laps?/);
     if (match) {
       const laps = parseInt(match[1]);
-      return `+${laps} Lap${laps > 1 ? 's' : ''}`;
+      return `+${laps} lap${laps > 1 ? 's' : ''}`;
     }
   }
 
+  // Handle disqualification
+  if (Status === 'DSQ') {
+    return 'DSQ';
+  }
+
   // Handle DNF (Did Not Finish)
+  // Shows specific reason if available (e.g., "Accident", "Engine", "Gearbox")
+  // Otherwise shows generic "DNF"
   if (Status !== 'Finished') {
-    return 'DNF';
+    return Status; // Will be "DNF" or specific reason from backend
   }
 
   // Format time based on position
