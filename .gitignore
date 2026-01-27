@@ -67,10 +67,11 @@ backend/media/
 package-lock.json
 
 # Documentation - Exclude development/implementation docs
-# Keep: README.md, PRD.md, SECURITY*.md files
+# Keep: README.md, PRD.md only
 *_IMPLEMENTATION.md
 *_GUIDE.md
 *_TESTING*.md
+SECURITY*.md
 backend/*_GUIDE.md
 backend/*_TESTING*.md
 backend/*_IMPLEMENTATION.md
