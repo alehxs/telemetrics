@@ -1,20 +1,58 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 interface DropdownProps {
   options: (string | number)[];
   placeholder: string;
   onSelect: (option: string | number) => void;
+  isOpen?: boolean;
+  onOpenChange?: (isOpen: boolean) => void;
 }
 
-const Dropdown = ({ options, placeholder, onSelect }: DropdownProps) => {
+const Dropdown = ({ options, placeholder, onSelect, isOpen: externalIsOpen, onOpenChange }: DropdownProps) => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [isOpen, setIsOpen] = useState(false);
+  const [internalIsOpen, setInternalIsOpen] = useState(false);
   const [filteredOptions, setFilteredOptions] = useState<(string | number)[]>(options);
   const [highlightedIndex, setHighlightedIndex] = useState(0);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Use external control if provided, otherwise use internal state
+  const isOpen = externalIsOpen !== undefined ? externalIsOpen : internalIsOpen;
+  const setIsOpen = (value: boolean) => {
+    if (onOpenChange) {
+      onOpenChange(value);
+    } else {
+      setInternalIsOpen(value);
+    }
+  };
 
   useEffect(() => {
     setFilteredOptions(options);
   }, [options]);
+
+  // Reset search state when dropdown opens
+  useEffect(() => {
+    if (isOpen) {
+      setSearchTerm('');
+      setFilteredOptions(options);
+      setHighlightedIndex(0);
+    }
+  }, [isOpen, options]);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => {
+        document.removeEventListener('mousedown', handleClickOutside);
+      };
+    }
+  }, [isOpen]);
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.trim();
@@ -70,13 +108,11 @@ const Dropdown = ({ options, placeholder, onSelect }: DropdownProps) => {
 
   const handleFocus = () => {
     setIsOpen(true);
-    setSearchTerm('');
-    setFilteredOptions(options);
-    setHighlightedIndex(0);
+    // Reset state is now handled by useEffect to avoid duplication
   };
 
   return (
-    <div className="relative w-full md:w-56 lg:w-64">
+    <div ref={dropdownRef} className="relative w-full md:w-56 lg:w-64">
       <input
         type="text"
         className="w-full px-4 py-3 md:py-2 text-base md:text-sm border border-gray-300 rounded-md shadow-sm bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"

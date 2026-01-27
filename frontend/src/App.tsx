@@ -16,6 +16,7 @@ const Home = () => {
   const [selectedYear, setSelectedYear] = useState<number | null>(null);
   const [selectedGrandPrix, setSelectedGrandPrix] = useState<string | null>(null);
   const [selectedSession, setSelectedSession] = useState<string | null>(null);
+  const [openDropdown, setOpenDropdown] = useState<'year' | 'grandprix' | 'session' | null>(null);
 
   // Reset dependent selections when parent changes
   const handleYearSelect = (year: number) => {
@@ -31,17 +32,23 @@ const Home = () => {
 
   return (
     <ErrorBoundary>
-      <div className="w-full min-h-screen px-2 sm:px-4 md:px-6 py-4 md:py-8">
+      <div className="w-full min-h-screen px-2 sm:px-4 md:px-6 xl:px-24 py-4 md:py-8">
         <Header />
 
         {/* Dropdowns */}
         <div className="flex flex-col md:flex-row justify-center gap-2 md:gap-4 mb-6 md:mb-8 max-w-full md:max-w-none">
-          <YearDropdown onSelect={handleYearSelect} />
+          <YearDropdown
+            onSelect={handleYearSelect}
+            isOpen={openDropdown === 'year'}
+            onOpenChange={(isOpen) => setOpenDropdown(isOpen ? 'year' : null)}
+          />
 
           {selectedYear && (
             <GrandPrixDropdown
               year={selectedYear}
               onSelect={handleGrandPrixSelect}
+              isOpen={openDropdown === 'grandprix'}
+              onOpenChange={(isOpen) => setOpenDropdown(isOpen ? 'grandprix' : null)}
             />
           )}
 
@@ -50,6 +57,8 @@ const Home = () => {
               year={selectedYear}
               grandPrix={selectedGrandPrix}
               onSelect={setSelectedSession}
+              isOpen={openDropdown === 'session'}
+              onOpenChange={(isOpen) => setOpenDropdown(isOpen ? 'session' : null)}
             />
           )}
         </div>

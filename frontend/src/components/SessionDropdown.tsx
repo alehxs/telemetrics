@@ -5,9 +5,11 @@ interface SessionDropdownProps {
   year: number;
   grandPrix: string;
   onSelect: (session: string) => void;
+  isOpen?: boolean;
+  onOpenChange?: (isOpen: boolean) => void;
 }
 
-const SessionDropdown = ({ year, grandPrix, onSelect }: SessionDropdownProps) => {
+const SessionDropdown = ({ year, grandPrix, onSelect, isOpen, onOpenChange }: SessionDropdownProps) => {
   const { data: sessionOptions } = useSessionOptions(year, grandPrix);
 
   const options = sessionOptions
@@ -19,6 +21,8 @@ const SessionDropdown = ({ year, grandPrix, onSelect }: SessionDropdownProps) =>
       options={options}
       placeholder="Session"
       onSelect={(value) => onSelect(String(value))}
+      isOpen={isOpen}
+      onOpenChange={onOpenChange}
     />
   );
 };

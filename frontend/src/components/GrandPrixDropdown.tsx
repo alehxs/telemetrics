@@ -4,9 +4,11 @@ import { useGrandPrixOptions } from '../hooks/useTelemetryData';
 interface GrandPrixDropdownProps {
   year: number;
   onSelect: (grandPrix: string) => void;
+  isOpen?: boolean;
+  onOpenChange?: (isOpen: boolean) => void;
 }
 
-const GrandPrixDropdown = ({ year, onSelect }: GrandPrixDropdownProps) => {
+const GrandPrixDropdown = ({ year, onSelect, isOpen, onOpenChange }: GrandPrixDropdownProps) => {
   const { data: grandPrixOptions } = useGrandPrixOptions(year);
 
   const options = grandPrixOptions.map((gp) => gp.value);
@@ -16,6 +18,8 @@ const GrandPrixDropdown = ({ year, onSelect }: GrandPrixDropdownProps) => {
       options={options}
       placeholder="Grand Prix"
       onSelect={(value) => onSelect(String(value))}
+      isOpen={isOpen}
+      onOpenChange={onOpenChange}
     />
   );
 };
