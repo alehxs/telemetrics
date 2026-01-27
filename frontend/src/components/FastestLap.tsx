@@ -37,7 +37,7 @@ const FastestLap = ({ year, grandPrix, session }: TelemetryComponentProps) => {
           <div className="flex items-center gap-4 text-white">
             <div className="flex items-center gap-2">
               <img src={tyreSvgPath} alt={`${tyreCompound} Tyre`} className="w-5 h-5" />
-              <span className="font-mono font-bold text-lg">{formattedTime}</span>
+              <span className="font-formula1 text-lg">{formattedTime}</span>
             </div>
             <span className="text-sm">-</span>
             <strong className="text-lg">{abbreviation}</strong>
