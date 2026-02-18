@@ -30,19 +30,19 @@ const FastestLap = ({ year, grandPrix, session }: TelemetryComponentProps) => {
       >
         <div className="flex items-center justify-between flex-wrap gap-3">
           <div className="flex items-center gap-2">
-            <img src={fastestLapSvgPath} alt="Timer icon" className="w-5 h-5" />
+            <img src={fastestLapSvgPath} alt="Timer icon" className="w-4 h-4" />
             <span className="font-bold text-white text-sm">FASTEST LAP</span>
           </div>
 
-          <div className="flex items-center gap-4 text-white">
+          <div className="flex items-center gap-3 text-white">
             <div className="flex items-center gap-2">
               <img src={tyreSvgPath} alt={`${tyreCompound} Tyre`} className="w-5 h-5" />
-              <span className="font-formula1 text-lg">{formattedTime}</span>
+              <span className="font-formula1 text-sm font-bold">{formattedTime}</span>
             </div>
-            <span className="text-sm">-</span>
-            <strong className="text-lg">{abbreviation}</strong>
-            <span className="text-sm">LAP {lap}</span>
-            <span className="text-xs text-purple-200">Age: {tyreLife}</span>
+            <span className="border-l border-white/50 h-4" />
+            <span className="text-sm font-bold">{abbreviation}</span>
+            <span className="text-sm text-purple-200">LAP {lap}</span>
+            <span className="text-sm text-purple-200">Age: {tyreLife}</span>
           </div>
         </div>
       </div>
