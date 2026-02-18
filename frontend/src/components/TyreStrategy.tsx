@@ -24,7 +24,7 @@ const TyreStrategyChart = ({ year, grandPrix, session }: TelemetryComponentProps
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const chartRef = useRef<Chart | null>(null);
 
-  const { data: tyreData } = useTyreStrategy(year, grandPrix, session);
+  const { data: tyreData, loading, error } = useTyreStrategy(year, grandPrix, session);
   const { data: sessionResults } = useSessionResults(year, grandPrix, session);
 
   const [tyreByLap, setTyreByLap] = useState<Record<string, Record<number, TyreCompound>>>({});
@@ -194,7 +194,13 @@ const TyreStrategyChart = ({ year, grandPrix, session }: TelemetryComponentProps
   // Dynamic container height - give each driver more space
   const containerHeight = driverOrder.length * 50 + 150;
 
-  if (!Object.keys(tyreByLap).length) {
+  if (loading || error || !Object.keys(tyreByLap).length) {
+    const message = error
+      ? 'Error loading tyre data.'
+      : loading
+        ? 'Loading tyre data…'
+        : 'Tyre strategy data not available for this session.';
+
     return (
       <div className="bg-gray-800 rounded-lg shadow-xl overflow-hidden">
         <div className="bg-red-600 px-4 py-3">
@@ -206,7 +212,7 @@ const TyreStrategyChart = ({ year, grandPrix, session }: TelemetryComponentProps
           </h2>
         </div>
         <div className="p-4">
-          <p className="text-white">Loading tyre data…</p>
+          <p className={error ? 'text-red-400' : 'text-gray-400'}>{message}</p>
         </div>
       </div>
     );

@@ -12,7 +12,7 @@ import LapsChart from './components/LapsChart';
 import ErrorBoundary from './components/ErrorBoundary';
 import Header from './components/Header';
 
-const Home = () => {
+const App = () => {
   const [selectedYear, setSelectedYear] = useState<number | null>(null);
   const [selectedGrandPrix, setSelectedGrandPrix] = useState<string | null>(null);
   const [selectedSession, setSelectedSession] = useState<string | null>(null);
@@ -118,4 +118,4 @@ const Home = () => {
   );
 };
 
-export default Home;
+export default App;

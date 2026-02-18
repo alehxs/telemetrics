@@ -112,11 +112,3 @@ export interface TelemetryComponentProps {
   grandPrix: string;
   session: string;
 }
-
-export interface DropdownProps {
-  options: Array<{ value: string | number; label: string }>;
-  value: string | number;
-  onChange: (value: string | number) => void;
-  placeholder?: string;
-  disabled?: boolean;
-}

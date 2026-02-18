@@ -1,5 +1,5 @@
 import { useSessionResults } from '../hooks/useTelemetryData';
-import { formatLeaderTime, formatIntervalTime, getDisplayTime } from '../utils/formatters';
+import { getDisplayTime } from '../utils/formatters';
 import { getTeamLogoPath } from '../utils/constants';
 import type { TelemetryComponentProps } from '../types/telemetry';
 

@@ -12,6 +12,7 @@ import type {
   SessionOption,
 } from '../types/telemetry';
 import { validateYear, validateGrandPrix, validateSession, validateDataType, RateLimiter } from '../utils/sanitize';
+import { sanitizeNaN } from '../utils/formatters';
 
 // Rate limiter: 60 requests per minute
 const rateLimiter = new RateLimiter(60, 60000);
@@ -114,9 +115,7 @@ export async function getFastestLap(
 
   if (!fastestLap) return null;
 
-  // Sanitize NaN values if present
-  const jsonString = JSON.stringify(fastestLap).replace(/\bNaN\b/g, 'null');
-  return JSON.parse(jsonString) as FastestLap;
+  return sanitizeNaN(fastestLap);
 }
 
 /**
