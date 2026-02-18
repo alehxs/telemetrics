@@ -11,7 +11,6 @@ interface DropdownProps {
 const Dropdown = ({ options, placeholder, onSelect, isOpen: externalIsOpen, onOpenChange }: DropdownProps) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [internalIsOpen, setInternalIsOpen] = useState(false);
-  const [filteredOptions, setFilteredOptions] = useState<(string | number)[]>(options);
   const [highlightedIndex, setHighlightedIndex] = useState(0);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -25,18 +24,11 @@ const Dropdown = ({ options, placeholder, onSelect, isOpen: externalIsOpen, onOp
     }
   };
 
-  useEffect(() => {
-    setFilteredOptions(options);
-  }, [options]);
-
-  // Reset search state when dropdown opens
-  useEffect(() => {
-    if (isOpen) {
-      setSearchTerm('');
-      setFilteredOptions(options);
-      setHighlightedIndex(0);
-    }
-  }, [isOpen, options]);
+  const filteredOptions = searchTerm.trim() === ''
+    ? options
+    : options.filter((option) =>
+        String(option).toLowerCase().includes(searchTerm.trim().toLowerCase())
+      );
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -55,19 +47,7 @@ const Dropdown = ({ options, placeholder, onSelect, isOpen: externalIsOpen, onOp
   }, [isOpen]);
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.trim();
-    setSearchTerm(value);
-
-    const newFilteredOptions = options.filter((option) => {
-      if (typeof option === 'string') {
-        return option.toLowerCase().includes(value.toLowerCase());
-      } else if (typeof option === 'number') {
-        return option.toString().includes(value);
-      }
-      return false;
-    });
-
-    setFilteredOptions(newFilteredOptions);
+    setSearchTerm(e.target.value);
     setHighlightedIndex(0);
   };
 
@@ -75,6 +55,12 @@ const Dropdown = ({ options, placeholder, onSelect, isOpen: externalIsOpen, onOp
     setSearchTerm(String(option));
     setIsOpen(false);
     onSelect(option);
+  };
+
+  const handleFocus = () => {
+    setSearchTerm('');
+    setHighlightedIndex(0);
+    setIsOpen(true);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -104,11 +90,6 @@ const Dropdown = ({ options, placeholder, onSelect, isOpen: externalIsOpen, onOp
       default:
         break;
     }
-  };
-
-  const handleFocus = () => {
-    setIsOpen(true);
-    // Reset state is now handled by useEffect to avoid duplication
   };
 
   return (

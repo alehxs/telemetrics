@@ -47,6 +47,15 @@ export function getTyreSvgPath(compound: TyreCompound): string {
 }
 
 /**
+ * Fallback color palette for drivers with no known team color.
+ * Assigned in order at data-load time so colors stay stable across re-renders.
+ */
+export const DRIVER_FALLBACK_PALETTE = [
+  '#A8A8A8', '#D4A843', '#7B68EE', '#20B2AA',
+  '#FF7F50', '#98FB98', '#DDA0DD', '#F0E68C',
+];
+
+/**
  * Default year (can be updated when more years are added)
  */
 export const DEFAULT_YEAR = 2024;

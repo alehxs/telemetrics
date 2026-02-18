@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import Chart from 'chart.js/auto';
 import zoomPlugin from 'chartjs-plugin-zoom';
 import { useLapChartData, useSessionResults } from '../hooks/useTelemetryData';
+import { DRIVER_FALLBACK_PALETTE } from '../utils/constants';
 import type { TelemetryComponentProps } from '../types/telemetry';
 
 Chart.register(zoomPlugin);
@@ -24,10 +25,6 @@ function parseTime(timeStr: string): number {
   return parseInt(m, 10) * 60 + parseInt(s, 10) + parseInt(ms.padEnd(3, '0'), 10) / 1000;
 }
 
-// Helper to generate random color (fallback)
-function randomColor(): string {
-  return '#' + Math.floor(Math.random() * 0xffffff).toString(16).padStart(6, '0');
-}
 
 const LapsChart = ({ year, grandPrix, session }: TelemetryComponentProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -47,13 +44,19 @@ const LapsChart = ({ year, grandPrix, session }: TelemetryComponentProps) => {
 
     const lapChartData = rawLapData as unknown as LapChartPayload;
 
-    // Build color map and driver order from session results
+    // Build color map from session results, assigning stable fallback
+    // palette colors to any driver without a known team color.
+    // Done here (data-load time) so colors never change on re-render.
     const colorMap: Record<string, string> = {};
-    sessionResults.forEach((r) => {
-      if (r.TeamColor) {
-        colorMap[r.Abbreviation] = r.TeamColor;
-      }
-    });
+    let paletteIndex = 0;
+    sessionResults
+      .slice()
+      .sort((a, b) => a.Position - b.Position)
+      .forEach((r) => {
+        colorMap[r.Abbreviation] =
+          r.TeamColor ||
+          DRIVER_FALLBACK_PALETTE[paletteIndex++ % DRIVER_FALLBACK_PALETTE.length];
+      });
 
     const order = sessionResults
       .slice()
@@ -115,7 +118,7 @@ const LapsChart = ({ year, grandPrix, session }: TelemetryComponentProps) => {
       .filter((lap) => selectedDrivers.includes(lap.driver))
       .reduce<any[]>((acc, lap) => {
         const driver = lap.driver;
-        const color = teamColors[driver] || randomColor();
+        const color = teamColors[driver];
         usedColors[color] = (usedColors[color] || 0) + 1;
         const dash = usedColors[color] > 1 ? [5, 5] : [];
 
