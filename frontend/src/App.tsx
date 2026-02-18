@@ -73,7 +73,7 @@ const Home = () => {
             />
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6 lg:gap-8">
-              <div className="lg:col-span-2 space-y-4 md:space-y-6 lg:space-y-8">
+              <div className="lg:col-span-2 space-y-4 md:space-y-6 lg:space-y-8 self-start">
                 <Podium
                   year={selectedYear}
                   grandPrix={selectedGrandPrix}
@@ -91,7 +91,7 @@ const Home = () => {
                 />
               </div>
 
-              <div>
+              <div className="flex flex-col">
                 <SessionResults
                   year={selectedYear}
                   grandPrix={selectedGrandPrix}

@@ -9,11 +9,11 @@ const SessionResults = ({ year, grandPrix, session }: TelemetryComponentProps) =
   const leaderTime = results[0]?.Time || null;
 
   return (
-    <div className="bg-gray-800 rounded-lg shadow-xl overflow-hidden h-fit">
-      <div className="bg-red-600 px-4 py-3">
+    <div className="bg-gray-800 rounded-lg shadow-xl overflow-hidden flex flex-col flex-1 min-h-0">
+      <div className="bg-red-600 px-4 py-3 shrink-0">
         <h2 className="text-lg font-bold text-white">Session Results</h2>
       </div>
-      <div className="max-h-[600px] overflow-y-auto">
+      <div className="flex-1 min-h-0 overflow-y-auto">
         <table className="table-auto w-full border-collapse">
           <thead className="sticky top-0 bg-gray-900">
             <tr>
