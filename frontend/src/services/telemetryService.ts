@@ -17,9 +17,13 @@ import { sanitizeNaN } from '../utils/formatters';
 // Rate limiter: 60 requests per minute
 const rateLimiter = new RateLimiter(60, 60000);
 
+// Request cache: stores in-flight (and resolved) promises by cache key.
+// Ensures multiple components requesting the same data fire only one network call.
+const requestCache = new Map<string, Promise<unknown>>();
+
 /**
  * Generic function to fetch telemetry data from Supabase
- * Includes input validation and rate limiting
+ * Includes input validation, rate limiting, and request deduplication
  */
 async function fetchTelemetryData<T>(
   year: number,
@@ -27,41 +31,51 @@ async function fetchTelemetryData<T>(
   session: string,
   dataType: DataType
 ): Promise<T | null> {
-  try {
-    // Rate limiting check
-    if (!rateLimiter.canMakeRequest()) {
-      console.warn('Rate limit exceeded. Please wait before making more requests.');
-      throw new Error('Rate limit exceeded. Please try again in a moment.');
-    }
+  const cacheKey = `${year}/${grandPrix}/${session}/${dataType}`;
+  if (requestCache.has(cacheKey)) {
+    return requestCache.get(cacheKey) as Promise<T | null>;
+  }
 
-    // Input validation
-    const validatedYear = validateYear(year);
-    const validatedGrandPrix = validateGrandPrix(grandPrix);
-    const validatedSession = validateSession(session);
-    const validatedDataType = validateDataType(dataType);
+  const promise = (async () => {
+    try {
+      // Rate limiting check
+      if (!rateLimiter.canMakeRequest()) {
+        console.warn('Rate limit exceeded. Please wait before making more requests.');
+        throw new Error('Rate limit exceeded. Please try again in a moment.');
+      }
 
-    // Record the request
-    rateLimiter.recordRequest();
+      // Input validation
+      const validatedYear = validateYear(year);
+      const validatedGrandPrix = validateGrandPrix(grandPrix);
+      const validatedSession = validateSession(session);
+      const validatedDataType = validateDataType(dataType);
 
-    const { data, error } = await supabase
-      .from('telemetry_data')
-      .select('payload')
-      .eq('year', validatedYear)
-      .eq('grand_prix', validatedGrandPrix)
-      .eq('session', validatedSession)
-      .eq('data_type', validatedDataType)
-      .single();
+      // Record the request
+      rateLimiter.recordRequest();
 
-    if (error) {
-      console.error(`Error fetching ${dataType}:`, error);
+      const { data, error } = await supabase
+        .from('telemetry_data')
+        .select('payload')
+        .eq('year', validatedYear)
+        .eq('grand_prix', validatedGrandPrix)
+        .eq('session', validatedSession)
+        .eq('data_type', validatedDataType)
+        .single();
+
+      if (error) {
+        console.error(`Error fetching ${dataType}:`, error);
+        return null;
+      }
+
+      return data?.payload as T;
+    } catch (error) {
+      console.error(`Failed to fetch ${dataType}:`, error);
       return null;
     }
+  })();
 
-    return data?.payload as T;
-  } catch (error) {
-    console.error(`Failed to fetch ${dataType}:`, error);
-    return null;
-  }
+  requestCache.set(cacheKey, promise);
+  return promise as Promise<T | null>;
 }
 
 /**
