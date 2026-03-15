@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import Chart from 'chart.js/auto';
 import zoomPlugin from 'chartjs-plugin-zoom';
 import { useLapChartData, useSessionResults } from '../hooks/useTelemetryData';
@@ -7,18 +7,6 @@ import type { TelemetryComponentProps } from '../types/telemetry';
 
 Chart.register(zoomPlugin);
 
-interface LapChartEntry {
-  driver: string;
-  lapNumber: number;
-  lapTime: string;
-}
-
-interface LapChartPayload {
-  laps: LapChartEntry[];
-  podium: string[];
-}
-
-// Parse "M:SS.mmm" into seconds (float)
 function parseTime(timeStr: string): number {
   const [m, rest] = timeStr.split(':');
   const [s, ms] = rest.split('.');
@@ -30,23 +18,12 @@ const LapsChart = ({ year, grandPrix, session }: TelemetryComponentProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const chartRef = useRef<Chart | null>(null);
 
-  const { data: rawLapData } = useLapChartData(year, grandPrix, session);
+  const { data: lapChartPayload } = useLapChartData(year, grandPrix, session);
   const { data: sessionResults } = useSessionResults(year, grandPrix, session);
 
-  const [data, setData] = useState<LapChartPayload | null>(null);
   const [selectedDrivers, setSelectedDrivers] = useState<string[]>([]);
-  const [teamColors, setTeamColors] = useState<Record<string, string>>({});
-  const [driverOrder, setDriverOrder] = useState<string[]>([]);
 
-  // Process fetched data
-  useEffect(() => {
-    if (!rawLapData) return;
-
-    const lapChartData = rawLapData as unknown as LapChartPayload;
-
-    // Build color map from session results, assigning stable fallback
-    // palette colors to any driver without a known team color.
-    // Done here (data-load time) so colors never change on re-render.
+  const teamColors = useMemo<Record<string, string>>(() => {
     const colorMap: Record<string, string> = {};
     let paletteIndex = 0;
     sessionResults
@@ -57,28 +34,29 @@ const LapsChart = ({ year, grandPrix, session }: TelemetryComponentProps) => {
           r.TeamColor ||
           DRIVER_FALLBACK_PALETTE[paletteIndex++ % DRIVER_FALLBACK_PALETTE.length];
       });
+    return colorMap;
+  }, [sessionResults]);
 
-    const order = sessionResults
-      .slice()
-      .sort((a, b) => a.Position - b.Position)
-      .map((r) => r.Abbreviation);
+  const driverOrder = useMemo<string[]>(
+    () =>
+      sessionResults
+        .slice()
+        .sort((a, b) => a.Position - b.Position)
+        .map((r) => r.Abbreviation),
+    [sessionResults]
+  );
 
-    setTeamColors(colorMap);
-    setDriverOrder(order);
-    setData(lapChartData);
-    setSelectedDrivers(lapChartData.podium || order.slice(0, 3));
-  }, [rawLapData, sessionResults]);
-
-  // Build/update chart
   useEffect(() => {
-    if (!data || !canvasRef.current) return;
+    if (!lapChartPayload) return;
+    setSelectedDrivers(lapChartPayload.podium || driverOrder.slice(0, 3));
+  }, [lapChartPayload, driverOrder]);
 
-    const lapData = Array.isArray(data.laps) ? data.laps : [];
+  useEffect(() => {
+    if (!lapChartPayload || !canvasRef.current) return;
 
-    // Don't render chart if no data
+    const lapData = Array.isArray(lapChartPayload.laps) ? lapChartPayload.laps : [];
     if (lapData.length === 0) return;
 
-    // Vertical hover line plugin
     const verticalLinePlugin = {
       id: 'verticalLine',
       afterDraw: (chart: Chart) => {
@@ -99,7 +77,6 @@ const LapsChart = ({ year, grandPrix, session }: TelemetryComponentProps) => {
       },
     };
 
-    // Compute static y-axis bounds
     const times = lapData.map((l) => parseTime(l.lapTime));
     const yMinVal = Math.min(...times);
     const yMaxVal = Math.max(...times);
@@ -115,7 +92,6 @@ const LapsChart = ({ year, grandPrix, session }: TelemetryComponentProps) => {
 
     const usedColors: Record<string, number> = {};
     const datasets = lapData
-      .filter((lap) => selectedDrivers.includes(lap.driver))
       .reduce<any[]>((acc, lap) => {
         const driver = lap.driver;
         const color = teamColors[driver];
@@ -258,19 +234,33 @@ const LapsChart = ({ year, grandPrix, session }: TelemetryComponentProps) => {
       plugins: [verticalLinePlugin],
     };
 
-    // Destroy previous chart
     if (chartRef.current) {
       chartRef.current.destroy();
     }
 
     chartRef.current = new Chart(canvasRef.current, config);
 
+    datasets.forEach((ds, i) => {
+      chartRef.current!.setDatasetVisibility(i, selectedDrivers.includes(ds.label));
+    });
+    chartRef.current.update();
+
     return () => {
       if (chartRef.current) {
         chartRef.current.destroy();
       }
     };
-  }, [data, selectedDrivers, teamColors]);
+  }, [lapChartPayload, teamColors]);
+
+  useEffect(() => {
+    const chart = chartRef.current;
+    if (!chart) return;
+
+    chart.data.datasets.forEach((ds: any, i: number) => {
+      chart.setDatasetVisibility(i, selectedDrivers.includes(ds.label));
+    });
+    chart.update();
+  }, [selectedDrivers]);
 
   const toggleDriver = (driver: string) => {
     setSelectedDrivers((selected) =>
@@ -279,14 +269,13 @@ const LapsChart = ({ year, grandPrix, session }: TelemetryComponentProps) => {
   };
 
   const resetAll = () => {
-    if (!driverOrder || driverOrder.length === 0) return;
-    setSelectedDrivers(driverOrder.slice(0, 3));
+    if (!lapChartPayload || driverOrder.length === 0) return;
+    setSelectedDrivers(lapChartPayload.podium || driverOrder.slice(0, 3));
   };
 
-  const lapData = data && Array.isArray(data.laps) ? data.laps : [];
+  const lapData = lapChartPayload && Array.isArray(lapChartPayload.laps) ? lapChartPayload.laps : [];
 
-  // Check if we have any lap data
-  if (!data || lapData.length === 0) {
+  if (!lapChartPayload || lapData.length === 0) {
     return (
       <div className="bg-gray-800 rounded-lg shadow-xl border border-gray-700 p-5">
         <div className="flex justify-between items-center mb-4">
@@ -319,27 +308,26 @@ const LapsChart = ({ year, grandPrix, session }: TelemetryComponentProps) => {
         <canvas ref={canvasRef} />
       </div>
       <div className="flex flex-wrap gap-2 mt-4">
-        {data &&
-          driverOrder
-            .filter((drv) => lapData.some((l) => l.driver === drv))
-            .map((drv) => {
-              const isSelected = selectedDrivers.includes(drv);
-              return (
-                <button
-                  key={drv}
-                  onMouseDown={(e) => e.preventDefault()}
-                  onClick={() => toggleDriver(drv)}
-                  className="px-3 py-1 rounded cursor-pointer transition-all text-sm font-semibold"
-                  style={{
-                    backgroundColor: isSelected ? teamColors[drv] : '#374151',
-                    color: isSelected ? '#fff' : teamColors[drv] || '#fff',
-                    border: isSelected ? `2px solid ${teamColors[drv]}` : '2px solid transparent',
-                  }}
-                >
-                  {drv}
-                </button>
-              );
-            })}
+        {driverOrder
+          .filter((drv) => lapData.some((l) => l.driver === drv))
+          .map((drv) => {
+            const isSelected = selectedDrivers.includes(drv);
+            return (
+              <button
+                key={drv}
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => toggleDriver(drv)}
+                className="px-3 py-1 rounded cursor-pointer transition-all text-sm font-semibold"
+                style={{
+                  backgroundColor: isSelected ? teamColors[drv] : '#374151',
+                  color: isSelected ? '#fff' : teamColors[drv] || '#fff',
+                  border: isSelected ? `2px solid ${teamColors[drv]}` : '2px solid transparent',
+                }}
+              >
+                {drv}
+              </button>
+            );
+          })}
       </div>
     </div>
   );
