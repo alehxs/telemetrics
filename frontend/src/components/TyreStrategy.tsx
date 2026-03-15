@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useMemo } from 'react';
 import Chart from 'chart.js/auto';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
 import { useTyreStrategy, useSessionResults } from '../hooks/useTelemetryData';
@@ -27,27 +27,24 @@ const TyreStrategyChart = ({ year, grandPrix, session }: TelemetryComponentProps
   const { data: tyreData, loading, error } = useTyreStrategy(year, grandPrix, session);
   const { data: sessionResults } = useSessionResults(year, grandPrix, session);
 
-  const [tyreByLap, setTyreByLap] = useState<Record<string, Record<number, TyreCompound>>>({});
-  const [driverOrder, setDriverOrder] = useState<string[]>([]);
+  const driverOrder = useMemo<string[]>(
+    () =>
+      sessionResults
+        .slice()
+        .sort((a, b) => a.Position - b.Position)
+        .map((r) => r.Abbreviation),
+    [sessionResults]
+  );
 
-  // Process fetched data
-  useEffect(() => {
-    // Get driver finishing order
-    const order = sessionResults
-      .slice()
-      .sort((a, b) => a.Position - b.Position)
-      .map((r) => r.Abbreviation);
-    setDriverOrder(order);
-
-    // Group tyre data by driver and lap
+  const tyreByLap = useMemo<Record<string, Record<number, TyreCompound>>>(() => {
     const grouped: Record<string, Record<number, TyreCompound>> = {};
     (tyreData as unknown as TyreLapData[]).forEach(({ Driver, Abbreviation, LapNumber, Compound }) => {
       const key = Abbreviation || Driver;
       if (!grouped[key]) grouped[key] = {};
       grouped[key][LapNumber] = Compound;
     });
-    setTyreByLap(grouped);
-  }, [tyreData, sessionResults]);
+    return grouped;
+  }, [tyreData]);
 
   // Build chart
   useEffect(() => {
