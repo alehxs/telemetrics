@@ -34,8 +34,8 @@ if not SUPABASE_SERVICE_KEY.startswith('eyJ') or len(SUPABASE_SERVICE_KEY) < 100
     logger.error("Invalid SUPABASE_SERVICE_KEY format")
     raise ValueError("Invalid SUPABASE_SERVICE_KEY format")
 
-# Years to process (2018-2025 = all FastF1 coverage)
-YEARS = list(range(2018, 2026))
+# Years to process (2018-2026 = all FastF1 coverage)
+YEARS = list(range(2018, 2027))
 
 # Session types to fetch
 SESSION_TYPES = [
