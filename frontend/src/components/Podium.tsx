@@ -8,9 +8,9 @@ const Podium = ({ year, grandPrix, session }: TelemetryComponentProps) => {
   return (
     <div className="bg-gray-800 rounded-lg shadow-xl border border-gray-700 p-2 md:p-4">
       <div className="flex flex-col md:flex-row gap-3 md:gap-4">
-        {podiumData.map((driver, index) => (
+        {podiumData.map((driver) => (
           <div
-            key={index}
+            key={driver.Abbreviation}
             className="relative md:flex-1 rounded-2xl md:rounded-xl shadow-lg overflow-hidden h-56 md:h-48"
             style={{
               backgroundColor: driver.TeamColor,

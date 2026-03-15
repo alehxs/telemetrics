@@ -25,7 +25,7 @@ const SessionResults = ({ year, grandPrix, session }: TelemetryComponentProps) =
           <tbody className="text-white">
             {results.map((driver, index) => (
               <tr
-                key={index}
+                key={driver.Abbreviation}
                 className={
                   index % 2 === 0 ? 'bg-gray-900/60' : 'bg-gray-800/40'
                 }
