@@ -8,7 +8,7 @@ interface YearDropdownProps {
 }
 
 const YearDropdown = ({ onSelect, isOpen, onOpenChange }: YearDropdownProps) => {
-  const { data: years } = useAvailableYears();
+  const years = useAvailableYears();
 
   return (
     <Dropdown

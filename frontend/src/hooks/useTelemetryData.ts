@@ -8,9 +8,9 @@ import type {
   PodiumDriver,
   FastestLap,
   SessionInfo,
-  TrackDominanceDriver,
+  TrackDominanceData,
   TyreStintEntry,
-  LapData,
+  LapChartPayload,
   GrandPrixOption,
   SessionOption,
 } from '../types/telemetry';
@@ -135,18 +135,15 @@ export function useSessionInfo(
   );
 }
 
-/**
- * Hook for fetching track dominance data
- */
 export function useTrackDominance(
   year: number,
   grandPrix: string,
   session: string
-): UseDataState<TrackDominanceDriver[]> {
+): UseDataState<TrackDominanceData | null> {
   return useTelemetryData(
     () => telemetryService.getTrackDominance(year, grandPrix, session),
     [year, grandPrix, session],
-    []
+    null
   );
 }
 
@@ -165,18 +162,15 @@ export function useTyreStrategy(
   );
 }
 
-/**
- * Hook for fetching lap chart data
- */
 export function useLapChartData(
   year: number,
   grandPrix: string,
   session: string
-): UseDataState<LapData[]> {
+): UseDataState<LapChartPayload | null> {
   return useTelemetryData(
     () => telemetryService.getLapChartData(year, grandPrix, session),
     [year, grandPrix, session],
-    []
+    null
   );
 }
 
@@ -205,13 +199,6 @@ export function useSessionOptions(
   );
 }
 
-/**
- * Hook for fetching available years
- */
-export function useAvailableYears(): UseDataState<number[]> {
-  return useTelemetryData(
-    () => Promise.resolve(telemetryService.AVAILABLE_YEARS),
-    [],
-    [2024]
-  );
+export function useAvailableYears(): number[] {
+  return telemetryService.AVAILABLE_YEARS;
 }
