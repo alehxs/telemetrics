@@ -47,18 +47,17 @@ export function validateGrandPrix(grandPrix: string): string {
     throw new Error('Invalid Grand Prix: must be a non-empty string');
   }
 
-  const sanitized = sanitizeString(grandPrix.trim());
+  const trimmed = grandPrix.trim();
 
-  if (sanitized.length === 0 || sanitized.length > 100) {
+  if (trimmed.length === 0 || trimmed.length > 100) {
     throw new Error('Invalid Grand Prix: length must be between 1 and 100 characters');
   }
 
-  // Allow only alphanumeric, spaces, and basic punctuation
-  if (!/^[a-zA-Z0-9\s\-']+$/.test(sanitized)) {
+  if (!/^[a-zA-Z0-9\s\-']+$/.test(trimmed)) {
     throw new Error('Invalid Grand Prix: contains invalid characters');
   }
 
-  return sanitized;
+  return trimmed;
 }
 
 /**
