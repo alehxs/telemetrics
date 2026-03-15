@@ -348,8 +348,8 @@ class DataTransformer:
             # Merge telemetry
             telemetry = pd.concat([tel1, tel2])
 
-            # Define minisectors (25 segments is standard)
-            num_minisectors = 25
+            # Define minisectors (50 segments for ~100m resolution)
+            num_minisectors = 50
             total_distance = telemetry['Distance'].max()
             minisector_length = total_distance / num_minisectors
 
@@ -398,6 +398,11 @@ class DataTransformer:
                     'points': current_points
                 })
 
+            # Close segment boundary gaps
+            for i in range(len(segments) - 1):
+                next_first = segments[i + 1]['points'][0]
+                segments[i]['points'].append(next_first)
+
             logger.info(f"Created track dominance with {len(segments)} segments")
 
             return {
@@ -420,17 +425,15 @@ class DataTransformer:
         """
         laps = self.extractor.get_laps()
 
-        tyre_data = []
-        for _, lap in laps.iterrows():
-            entry = {
+        return [
+            {
                 'Driver': str(lap.get('Driver', 'UNK')),
                 'Abbreviation': str(lap.get('Driver', 'UNK')),
                 'LapNumber': int(lap.get('LapNumber', 0)),
                 'Compound': self._get_compound_name(lap.get('Compound'))
             }
-            tyre_data.append(entry)
-
-        return tyre_data
+            for lap in laps[['Driver', 'LapNumber', 'Compound']].to_dict('records')
+        ]
 
     def transform_lap_chart_data(self) -> Dict[str, Any]:
         """
@@ -439,16 +442,12 @@ class DataTransformer:
         laps = self.extractor.get_laps()
         results = self.extractor.get_driver_standings()
 
-        # Get podium drivers
-        top_3 = results.head(3)
-        podium = [str(row.get('Abbreviation', 'UNK')) for _, row in top_3.iterrows()]
+        podium = [str(row.get('Abbreviation', 'UNK')) for row in results.head(3).to_dict('records')]
 
-        # Build lap data
         lap_entries = []
-        for _, lap in laps.iterrows():
-            if pd.notna(lap.get('LapTime')):
-                # Format lap time as M:SS.mmm
-                lap_time = lap.get('LapTime')
+        for lap in laps[['Driver', 'LapNumber', 'LapTime']].to_dict('records'):
+            lap_time = lap.get('LapTime')
+            if pd.notna(lap_time):
                 if isinstance(lap_time, pd.Timedelta):
                     total_seconds = lap_time.total_seconds()
                     minutes = int(total_seconds // 60)
@@ -457,12 +456,11 @@ class DataTransformer:
                 else:
                     formatted_time = str(lap_time)
 
-                entry = {
+                lap_entries.append({
                     'driver': str(lap.get('Driver', 'UNK')),
                     'lapNumber': int(lap.get('LapNumber', 0)),
                     'lapTime': formatted_time
-                }
-                lap_entries.append(entry)
+                })
 
         return {
             'podium': podium,
