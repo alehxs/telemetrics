@@ -1,6 +1,7 @@
+import ReactCountryFlag from 'react-country-flag';
 import { useSessionInfo } from '../hooks/useTelemetryData';
 import { formatEventDate } from '../utils/formatters';
-import { getCountryFlag } from '../utils/constants';
+import { getCountryCode } from '../utils/constants';
 import type { TelemetryComponentProps } from '../types/telemetry';
 
 const SessionInfo = ({ year, grandPrix, session }: TelemetryComponentProps) => {
@@ -20,7 +21,7 @@ const SessionInfo = ({ year, grandPrix, session }: TelemetryComponentProps) => {
   } = sessionData;
 
   const formattedDate = formatEventDate(EventDate);
-  const countryFlag = getCountryFlag(Country);
+  const countryCode = getCountryCode(Country);
 
   return (
     <div className="bg-gradient-to-r from-gray-800 to-gray-900 rounded-lg shadow-xl border border-gray-700 overflow-hidden">
@@ -30,7 +31,7 @@ const SessionInfo = ({ year, grandPrix, session }: TelemetryComponentProps) => {
             <h2 className="text-2xl font-bold text-white mb-2">{OfficialEventName}</h2>
             <div className="flex items-center gap-4 text-gray-300 text-sm">
               <span className="flex items-center gap-2">
-                <span className="text-xl">{countryFlag}</span>
+                {countryCode && <ReactCountryFlag countryCode={countryCode} svg style={{ width: '1.5em', height: '1.5em' }} />}
                 <span>{Location}, {Country}</span>
               </span>
               <span className="text-gray-500">|</span>

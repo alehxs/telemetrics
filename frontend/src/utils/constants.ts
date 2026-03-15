@@ -85,6 +85,52 @@ export function getDriverHeadshotPath(driverAbbreviation: string): string {
   return `${DRIVER_HEADSHOT_BASE_PATH}${driverAbbreviation.toUpperCase()}.png`;
 }
 
+export function adjustColorLightness(hexColor: string, amount: number): string {
+  const color = hexColor.replace('#', '');
+  const r = parseInt(color.substring(0, 2), 16) / 255;
+  const g = parseInt(color.substring(2, 4), 16) / 255;
+  const b = parseInt(color.substring(4, 6), 16) / 255;
+
+  const max = Math.max(r, g, b), min = Math.min(r, g, b);
+  let h = 0, s = 0;
+  const l = (max + min) / 2;
+
+  if (max !== min) {
+    const d = max - min;
+    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+    switch (max) {
+      case r: h = ((g - b) / d + (g < b ? 6 : 0)) / 6; break;
+      case g: h = ((b - r) / d + 2) / 6; break;
+      case b: h = ((r - g) / d + 4) / 6; break;
+    }
+  }
+
+  const newL = Math.min(1, Math.max(0, l + amount / 100));
+
+  const hue2rgb = (p: number, q: number, t: number) => {
+    if (t < 0) t += 1;
+    if (t > 1) t -= 1;
+    if (t < 1/6) return p + (q - p) * 6 * t;
+    if (t < 1/2) return q;
+    if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+    return p;
+  };
+
+  let nr: number, ng: number, nb: number;
+  if (s === 0) {
+    nr = ng = nb = newL;
+  } else {
+    const q = newL < 0.5 ? newL * (1 + s) : newL + s - newL * s;
+    const p = 2 * newL - q;
+    nr = hue2rgb(p, q, h + 1/3);
+    ng = hue2rgb(p, q, h);
+    nb = hue2rgb(p, q, h - 1/3);
+  }
+
+  const toHex = (x: number) => Math.round(x * 255).toString(16).padStart(2, '0');
+  return `#${toHex(nr)}${toHex(ng)}${toHex(nb)}`;
+}
+
 /**
  * Adjust team color brightness for better readability
  */
@@ -107,53 +153,52 @@ export function adjustTeamColor(hexColor: string, amount: number = 30): string {
 }
 
 /**
- * Country to flag emoji mapping for F1 Grand Prix locations
+ * Country name to ISO 3166-1 alpha-2 code mapping for F1 Grand Prix locations
  */
-export const COUNTRY_FLAGS: Record<string, string> = {
-  // 2024 Season
-  'Bahrain': '🇧🇭',
-  'Saudi Arabia': '🇸🇦',
-  'Australia': '🇦🇺',
-  'Azerbaijan': '🇦🇿',
-  'USA': '🇺🇸',
-  'Italy': '🇮🇹',
-  'Monaco': '🇲🇨',
-  'Spain': '🇪🇸',
-  'Canada': '🇨🇦',
-  'Austria': '🇦🇹',
-  'Great Britain': '🇬🇧',
-  'UK': '🇬🇧',
-  'Hungary': '🇭🇺',
-  'Belgium': '🇧🇪',
-  'Netherlands': '🇳🇱',
-  'Singapore': '🇸🇬',
-  'Japan': '🇯🇵',
-  'Qatar': '🇶🇦',
-  'Mexico': '🇲🇽',
-  'Brazil': '🇧🇷',
-  'Las Vegas': '🇺🇸',
-  'Abu Dhabi': '🇦🇪',
-  'UAE': '🇦🇪',
-
-  // Historical locations
-  'China': '🇨🇳',
-  'France': '🇫🇷',
-  'Germany': '🇩🇪',
-  'Russia': '🇷🇺',
-  'Turkey': '🇹🇷',
-  'Portugal': '🇵🇹',
-  'India': '🇮🇳',
-  'Malaysia': '🇲🇾',
-  'Korea': '🇰🇷',
-  'South Korea': '🇰🇷',
-  'Argentina': '🇦🇷',
-  'South Africa': '🇿🇦',
-  'Morocco': '🇲🇦',
-} as const;
+export const COUNTRY_CODES: Record<string, string> = {
+  'Bahrain': 'BH',
+  'Saudi Arabia': 'SA',
+  'Australia': 'AU',
+  'Azerbaijan': 'AZ',
+  'USA': 'US',
+  'United States': 'US',
+  'Italy': 'IT',
+  'Monaco': 'MC',
+  'Spain': 'ES',
+  'Canada': 'CA',
+  'Austria': 'AT',
+  'Great Britain': 'GB',
+  'United Kingdom': 'GB',
+  'UK': 'GB',
+  'Hungary': 'HU',
+  'Belgium': 'BE',
+  'Netherlands': 'NL',
+  'Singapore': 'SG',
+  'Japan': 'JP',
+  'Qatar': 'QA',
+  'Mexico': 'MX',
+  'Brazil': 'BR',
+  'Abu Dhabi': 'AE',
+  'United Arab Emirates': 'AE',
+  'UAE': 'AE',
+  'China': 'CN',
+  'France': 'FR',
+  'Germany': 'DE',
+  'Russia': 'RU',
+  'Turkey': 'TR',
+  'Portugal': 'PT',
+  'India': 'IN',
+  'Malaysia': 'MY',
+  'Korea': 'KR',
+  'South Korea': 'KR',
+  'Argentina': 'AR',
+  'South Africa': 'ZA',
+  'Morocco': 'MA',
+};
 
 /**
- * Get country flag emoji for a country name
+ * Get ISO 3166-1 alpha-2 country code for a country name
  */
-export function getCountryFlag(country: string): string {
-  return COUNTRY_FLAGS[country] || '🏁';
+export function getCountryCode(country: string): string {
+  return COUNTRY_CODES[country] ?? '';
 }

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 
 interface DropdownProps {
   options: (string | number)[];
@@ -6,23 +6,27 @@ interface DropdownProps {
   onSelect: (option: string | number) => void;
   isOpen?: boolean;
   onOpenChange?: (isOpen: boolean) => void;
+  renderOption?: (option: string | number) => React.ReactNode;
 }
 
-const Dropdown = ({ options, placeholder, onSelect, isOpen: externalIsOpen, onOpenChange }: DropdownProps) => {
+const Dropdown = ({ options, placeholder, onSelect, isOpen: externalIsOpen, onOpenChange, renderOption }: DropdownProps) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [internalIsOpen, setInternalIsOpen] = useState(false);
   const [highlightedIndex, setHighlightedIndex] = useState(0);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Use external control if provided, otherwise use internal state
   const isOpen = externalIsOpen !== undefined ? externalIsOpen : internalIsOpen;
-  const setIsOpen = (value: boolean) => {
-    if (onOpenChange) {
-      onOpenChange(value);
-    } else {
-      setInternalIsOpen(value);
-    }
-  };
+
+  const setIsOpen = useCallback(
+    (value: boolean) => {
+      if (onOpenChange) {
+        onOpenChange(value);
+      } else {
+        setInternalIsOpen(value);
+      }
+    },
+    [onOpenChange]
+  );
 
   const filteredOptions = searchTerm.trim() === ''
     ? options
@@ -30,7 +34,6 @@ const Dropdown = ({ options, placeholder, onSelect, isOpen: externalIsOpen, onOp
         String(option).toLowerCase().includes(searchTerm.trim().toLowerCase())
       );
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -44,7 +47,7 @@ const Dropdown = ({ options, placeholder, onSelect, isOpen: externalIsOpen, onOp
         document.removeEventListener('mousedown', handleClickOutside);
       };
     }
-  }, [isOpen]);
+  }, [isOpen, setIsOpen]);
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);
@@ -108,14 +111,14 @@ const Dropdown = ({ options, placeholder, onSelect, isOpen: externalIsOpen, onOp
         <div className="absolute mt-1 w-full bg-white border border-gray-300 rounded-md shadow-lg z-50 max-h-60 overflow-y-auto">
           {filteredOptions.map((option, index) => (
             <button
-              key={index}
+              key={String(option)}
               className={`w-full px-4 py-3 md:py-2 text-base md:text-sm text-left text-gray-900 ${
                 index === highlightedIndex ? 'bg-blue-100' : 'bg-white'
               } hover:bg-blue-50`}
               onMouseEnter={() => setHighlightedIndex(index)}
               onClick={() => handleOptionClick(option)}
             >
-              {option}
+              {renderOption ? renderOption(option) : option}
             </button>
           ))}
         </div>

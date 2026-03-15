@@ -5,9 +5,9 @@ import type {
   PodiumDriver,
   FastestLap,
   SessionInfo,
-  TrackDominanceDriver,
+  TrackDominanceData,
   TyreStintEntry,
-  LapData,
+  LapChartPayload,
   GrandPrixOption,
   SessionOption,
 } from '../types/telemetry';
@@ -74,6 +74,7 @@ async function fetchTelemetryData<T>(
     }
   })();
 
+  promise.finally(() => requestCache.delete(cacheKey));
   requestCache.set(cacheKey, promise);
   return promise as Promise<T | null>;
 }
@@ -148,21 +149,17 @@ export async function getSessionInfo(
   );
 }
 
-/**
- * Fetch track dominance data (scatter plot data)
- */
 export async function getTrackDominance(
   year: number,
   grandPrix: string,
   session: string
-): Promise<TrackDominanceDriver[]> {
-  const data = await fetchTelemetryData<TrackDominanceDriver[]>(
+): Promise<TrackDominanceData | null> {
+  return fetchTelemetryData<TrackDominanceData>(
     year,
     grandPrix,
     session,
     'track_dominance'
   );
-  return data || [];
 }
 
 /**
@@ -189,14 +186,13 @@ export async function getLapChartData(
   year: number,
   grandPrix: string,
   session: string
-): Promise<LapData[]> {
-  const data = await fetchTelemetryData<LapData[]>(
+): Promise<LapChartPayload | null> {
+  return fetchTelemetryData<LapChartPayload>(
     year,
     grandPrix,
     session,
     'lap_chart_data'
   );
-  return data || [];
 }
 
 /**
@@ -207,7 +203,7 @@ export async function getGrandPrixOptions(year: number): Promise<GrandPrixOption
     // Fetch session data to get event dates for ordering
     const { data, error } = await supabase
       .from('telemetry_data')
-      .select('grand_prix, payload')
+      .select('grand_prix, payload->EventDate, payload->Country')
       .eq('year', year)
       .eq('data_type', 'get_session_data');
 
@@ -216,18 +212,19 @@ export async function getGrandPrixOptions(year: number): Promise<GrandPrixOption
       return [];
     }
 
-    // Build map of grand_prix -> event date
-    const gpDateMap = new Map<string, string>();
+    const gpDateMap = new Map<string, { date: string; country: string }>();
     data.forEach((row) => {
-      if (row.payload?.EventDate && !gpDateMap.has(row.grand_prix)) {
-        gpDateMap.set(row.grand_prix, row.payload.EventDate);
+      const { EventDate: eventDate, Country: country } = row as unknown as { grand_prix: string; EventDate: string; Country: string };
+      if (eventDate && !gpDateMap.has(row.grand_prix)) {
+        gpDateMap.set(row.grand_prix, { date: eventDate, country: country ?? '' });
       }
     });
 
     // Get unique grand prix events with their dates
-    const gpWithDates = Array.from(gpDateMap.entries()).map(([gp, date]) => ({
+    const gpWithDates = Array.from(gpDateMap.entries()).map(([gp, { date, country }]) => ({
       gp,
       date,
+      country,
     }));
 
     // Sort by event date (chronological order)
@@ -238,9 +235,10 @@ export async function getGrandPrixOptions(year: number): Promise<GrandPrixOption
     });
 
     // Return in schedule order
-    return gpWithDates.map(({ gp }) => ({
+    return gpWithDates.map(({ gp, country }) => ({
       value: gp,
       label: gp,
+      country,
     }));
   } catch (error) {
     console.error('Failed to fetch Grand Prix options:', error);
@@ -298,10 +296,4 @@ export async function getSessionOptions(
   }
 }
 
-/**
- * Fetch available years
- */
-export async function getAvailableYears(): Promise<number[]> {
-  // Hardcoded years from 2018-2025 (matching backend config)
-  return [2025, 2024, 2023, 2022, 2021, 2020, 2019, 2018];
-}
+export const AVAILABLE_YEARS: number[] = [2025, 2024, 2023, 2022, 2021, 2020, 2019, 2018];

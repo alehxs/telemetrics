@@ -38,16 +38,15 @@ export interface SessionInfo {
   TotalLaps: number | string;
 }
 
-export interface TrackDominancePoint {
-  x: number;
-  y: number;
+export interface TrackDominanceSegment {
+  fastestDriver: string;
+  points: Array<[number, number]>;
 }
 
-export interface TrackDominanceDriver {
-  driver: string;
-  team: string;
-  color: string;
-  data: TrackDominancePoint[];
+export interface TrackDominanceData {
+  drivers: string[];
+  teamColors: string[];
+  segments: TrackDominanceSegment[];
 }
 
 export interface TyreStintEntry {
@@ -61,11 +60,14 @@ export interface TyreStintEntry {
 }
 
 export interface LapData {
-  Driver: string;
-  LapNumber: number;
-  LapTime: number;
-  LapTimeString: string;
-  Compound?: TyreCompound;
+  driver: string;
+  lapNumber: number;
+  lapTime: string;
+}
+
+export interface LapChartPayload {
+  laps: LapData[];
+  podium: string[];
 }
 
 // Tyre compound types
@@ -94,6 +96,7 @@ export interface TelemetryDataRow<T = unknown> {
 export interface GrandPrixOption {
   value: string;
   label: string;
+  country: string;
 }
 
 export interface SessionOption {
