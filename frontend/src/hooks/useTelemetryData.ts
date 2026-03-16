@@ -210,7 +210,7 @@ export function useSessionOptions(
  */
 export function useAvailableYears(): UseDataState<number[]> {
   return useTelemetryData(
-    () => telemetryService.getAvailableYears(),
+    () => Promise.resolve(telemetryService.AVAILABLE_YEARS),
     [],
     [2024]
   );
