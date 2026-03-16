@@ -74,8 +74,8 @@ async function fetchTelemetryData<T>(
     }
   })();
 
-  promise.finally(() => requestCache.delete(cacheKey));
   requestCache.set(cacheKey, promise);
+  promise.finally(() => requestCache.delete(cacheKey));
   return promise as Promise<T | null>;
 }
 

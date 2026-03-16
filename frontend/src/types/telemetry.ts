@@ -51,12 +51,9 @@ export interface TrackDominanceData {
 
 export interface TyreStintEntry {
   Driver: string;
-  Stint: number;
+  Abbreviation: string;
+  LapNumber: number;
   Compound: TyreCompound;
-  LapStart: number;
-  LapEnd: number;
-  StintLength: number;
-  TyreLife: number;
 }
 
 export interface LapData {

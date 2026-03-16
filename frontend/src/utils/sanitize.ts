@@ -68,7 +68,7 @@ export function validateSession(session: string): string {
     throw new Error('Invalid session: must be a non-empty string');
   }
 
-  const sanitized = sanitizeString(session.trim());
+  const trimmed = session.trim();
 
   // Whitelist of valid session types
   const validSessions = [
@@ -81,11 +81,11 @@ export function validateSession(session: string): string {
     'Race'
   ];
 
-  if (!validSessions.includes(sanitized)) {
+  if (!validSessions.includes(trimmed)) {
     throw new Error(`Invalid session: must be one of ${validSessions.join(', ')}`);
   }
 
-  return sanitized;
+  return trimmed;
 }
 
 /**
@@ -96,7 +96,7 @@ export function validateDataType(dataType: string): string {
     throw new Error('Invalid data type: must be a non-empty string');
   }
 
-  const sanitized = sanitizeString(dataType.trim());
+  const trimmed = dataType.trim();
 
   // Whitelist of valid data types
   const validDataTypes = [
@@ -109,11 +109,11 @@ export function validateDataType(dataType: string): string {
     'lap_chart_data'
   ];
 
-  if (!validDataTypes.includes(sanitized)) {
+  if (!validDataTypes.includes(trimmed)) {
     throw new Error(`Invalid data type: must be one of ${validDataTypes.join(', ')}`);
   }
 
-  return sanitized;
+  return trimmed;
 }
 
 /**

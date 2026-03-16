@@ -400,6 +400,8 @@ class DataTransformer:
 
             # Close segment boundary gaps
             for i in range(len(segments) - 1):
+                if not segments[i + 1]['points']:
+                    continue
                 next_first = segments[i + 1]['points'][0]
                 segments[i]['points'].append(next_first)
 

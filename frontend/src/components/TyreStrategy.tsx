@@ -7,13 +7,6 @@ import type { TelemetryComponentProps, TyreCompound } from '../types/telemetry';
 
 Chart.register(ChartDataLabels);
 
-interface TyreLapData {
-  Driver: string;
-  Abbreviation?: string;
-  LapNumber: number;
-  Compound: TyreCompound;
-}
-
 interface Stint {
   start: number;
   end: number;
@@ -38,7 +31,7 @@ const TyreStrategyChart = ({ year, grandPrix, session }: TelemetryComponentProps
 
   const tyreByLap = useMemo<Record<string, Record<number, TyreCompound>>>(() => {
     const grouped: Record<string, Record<number, TyreCompound>> = {};
-    (tyreData as unknown as TyreLapData[]).forEach(({ Driver, Abbreviation, LapNumber, Compound }) => {
+    tyreData.forEach(({ Driver, Abbreviation, LapNumber, Compound }) => {
       const key = Abbreviation || Driver;
       if (!grouped[key]) grouped[key] = {};
       grouped[key][LapNumber] = Compound;

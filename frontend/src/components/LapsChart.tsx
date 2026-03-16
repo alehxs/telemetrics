@@ -240,11 +240,6 @@ const LapsChart = ({ year, grandPrix, session }: TelemetryComponentProps) => {
 
     chartRef.current = new Chart(canvasRef.current, config);
 
-    datasets.forEach((ds, i) => {
-      chartRef.current!.setDatasetVisibility(i, selectedDrivers.includes(ds.label));
-    });
-    chartRef.current.update();
-
     return () => {
       if (chartRef.current) {
         chartRef.current.destroy();
