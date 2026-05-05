@@ -1,12 +1,15 @@
 const Header = () => {
   return (
-    <div className="flex items-center justify-center mb-6">
-      <h1
-        className="text-xl font-bold text-gray-900 tracking-wide"
-        style={{ fontFamily: "'Formula1 Display'" }}
-      >
-        Telemetrics
-      </h1>
+    <div className="flex flex-col items-center mb-6">
+      <div className="pb-4">
+        <h1
+          className="text-xl font-bold tracking-wide"
+          style={{ fontFamily: "'Formula1 Display'", color: '#E10600' }}
+        >
+          Telemetrics
+        </h1>
+      </div>
+      <div className="w-full h-px bg-gradient-to-r from-transparent via-[#E10600] to-transparent" />
     </div>
   );
 };

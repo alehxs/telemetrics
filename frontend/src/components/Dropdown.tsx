@@ -52,6 +52,7 @@ const Dropdown = ({ options, placeholder, onSelect, isOpen: externalIsOpen, onOp
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);
     setHighlightedIndex(0);
+    if (!isOpen) setIsOpen(true);
   };
 
   const handleOptionClick = (option: string | number) => {
@@ -99,7 +100,8 @@ const Dropdown = ({ options, placeholder, onSelect, isOpen: externalIsOpen, onOp
     <div ref={dropdownRef} className="relative w-full md:w-56 lg:w-64">
       <input
         type="text"
-        className="w-full px-4 py-3 md:py-2 text-base md:text-sm border border-gray-300 rounded-md shadow-sm bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+        className="w-full px-4 py-3 md:py-2 text-base md:text-sm border border-[#2A2D45] rounded-md shadow-sm bg-[#16182A] text-[#F0F2FF] placeholder:text-[#4A5080] focus:outline-none focus:ring-2 focus:ring-[#3D4875] focus:border-[#3D4875]"
+        autoComplete="off"
         placeholder={placeholder}
         value={searchTerm}
         onChange={handleSearchChange}
@@ -108,13 +110,13 @@ const Dropdown = ({ options, placeholder, onSelect, isOpen: externalIsOpen, onOp
         onKeyDown={handleKeyDown}
       />
       {isOpen && filteredOptions.length > 0 && (
-        <div className="absolute mt-1 w-full bg-white border border-gray-300 rounded-md shadow-lg z-50 max-h-60 overflow-y-auto">
+        <div className="absolute mt-1 w-full bg-[#16182A] border border-[#2A2D45] rounded-md shadow-lg z-50 max-h-60 overflow-y-auto">
           {filteredOptions.map((option, index) => (
             <button
               key={String(option)}
-              className={`w-full px-4 py-3 md:py-2 text-base md:text-sm text-left text-gray-900 ${
-                index === highlightedIndex ? 'bg-blue-100' : 'bg-white'
-              } hover:bg-blue-50`}
+              className={`w-full px-4 py-3 md:py-2 text-base md:text-sm text-left text-[#F0F2FF] ${
+                index === highlightedIndex ? 'bg-[#252B40]' : 'bg-[#16182A]'
+              } hover:bg-[#1C1F36]`}
               onMouseEnter={() => setHighlightedIndex(index)}
               onClick={() => handleOptionClick(option)}
             >
@@ -124,8 +126,8 @@ const Dropdown = ({ options, placeholder, onSelect, isOpen: externalIsOpen, onOp
         </div>
       )}
       {isOpen && filteredOptions.length === 0 && (
-        <div className="absolute mt-1 w-full bg-white border border-gray-300 rounded-md shadow-lg z-50">
-          <div className="px-4 py-2 text-gray-500">No results found</div>
+        <div className="absolute mt-1 w-full bg-[#16182A] border border-[#2A2D45] rounded-md shadow-lg z-50">
+          <div className="px-4 py-2 text-[#8B92B8]">No results found</div>
         </div>
       )}
     </div>
