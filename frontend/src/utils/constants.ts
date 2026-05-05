@@ -8,12 +8,12 @@ import type { TyreCompound } from '../types/telemetry';
  * Tyre compound color mapping
  */
 export const TYRE_COMPOUND_COLORS: Record<TyreCompound, string> = {
-  SOFT: '#FF1E1E',
-  MEDIUM: '#FFD700',
-  HARD: '#FFFFFF',
-  INTERMEDIATE: '#00C16E',
-  WET: '#007BFF',
-  UNKNOWN: '#999999',
+  SOFT: '#C8384C',
+  MEDIUM: '#C49820',
+  HARD: '#D4D4D4',
+  INTERMEDIATE: '#30A860',
+  WET: '#3070C0',
+  UNKNOWN: '#7A7A8A',
 };
 
 /**
