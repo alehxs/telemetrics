@@ -9,25 +9,30 @@ const SessionResults = ({ year, grandPrix, session }: TelemetryComponentProps) =
   const leaderTime = results[0]?.Time || null;
 
   return (
-    <div className="bg-gray-800 rounded-lg shadow-xl overflow-hidden flex flex-col flex-1 min-h-0">
-      <div className="bg-red-600 px-4 py-3 shrink-0">
-        <h2 className="text-lg font-bold text-white">Session Results</h2>
+    <div className="bg-gradient-to-b from-[#1C1F38] to-[#14172A] rounded-lg shadow-[0_8px_32px_rgba(0,0,0,0.6)] overflow-hidden flex flex-col flex-1 min-h-0 border border-[#2A2D45] border-t-white/[0.08]">
+      <div className="px-4 py-3 shrink-0">
+        <h2 className="text-xs font-semibold text-[#8B92B8] uppercase tracking-[0.12em]">Session Results</h2>
       </div>
       <div className="flex-1 min-h-0 overflow-y-auto">
         <table className="table-auto w-full border-collapse">
-          <thead className="sticky top-0 bg-gray-900">
+          <thead className="sticky top-0 bg-[#1C1F36]">
             <tr>
-              <th className="px-3 py-2 text-left text-xs font-semibold text-gray-300">POS</th>
-              <th className="px-3 py-2 text-left text-xs font-semibold text-gray-300">DRIVER</th>
-              <th className="px-3 py-2 text-right text-xs font-semibold text-gray-300">TIME</th>
+              <th className="px-3 py-2 text-left text-xs font-semibold text-[#8B92B8]">POS</th>
+              <th className="px-3 py-2 text-left text-xs font-semibold text-[#8B92B8]">DRIVER</th>
+              <th className="px-3 py-2 text-right text-xs font-semibold text-[#8B92B8]">TIME</th>
             </tr>
           </thead>
           <tbody className="text-white">
             {results.map((driver, index) => (
               <tr
                 key={driver.Abbreviation}
-                className={
-                  index % 2 === 0 ? 'bg-gray-900/60' : 'bg-gray-800/40'
+                className={index % 2 === 0 ? 'bg-[#1C1F36]/60' : 'bg-[#14172A]/40'}
+                style={
+                  index === 0
+                    ? { backgroundColor: 'rgba(225,6,0,0.06)', borderLeft: '3px solid #E10600' }
+                    : driver.TeamColor
+                      ? { borderLeft: `3px solid ${driver.TeamColor}` }
+                      : undefined
                 }
               >
                 <td className="px-3 py-2 text-left font-bold text-sm">
