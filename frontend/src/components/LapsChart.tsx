@@ -17,6 +17,7 @@ function parseTime(timeStr: string): number {
 const LapsChart = ({ year, grandPrix, session }: TelemetryComponentProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const chartRef = useRef<Chart | null>(null);
+  const selectedDriversRef = useRef<string[]>([]);
 
   const { data: lapChartPayload } = useLapChartData(year, grandPrix, session);
   const { data: sessionResults } = useSessionResults(year, grandPrix, session);
@@ -132,13 +133,13 @@ const LapsChart = ({ year, grandPrix, session }: TelemetryComponentProps) => {
             title: { display: true, text: 'Lap Number' },
             min: xMin,
             max: xMax,
-            grid: { display: true, color: '#333' },
+            grid: { display: true, color: '#2A2D45' },
           },
           y: {
             title: { display: false },
             min: yMin,
             max: yMax,
-            grid: { display: true, color: '#333' },
+            grid: { display: true, color: '#2A2D45' },
             ticks: {
               callback: (value: string | number) => {
                 const numValue = Number(value);
@@ -240,6 +241,13 @@ const LapsChart = ({ year, grandPrix, session }: TelemetryComponentProps) => {
 
     chartRef.current = new Chart(canvasRef.current, config);
 
+    if (selectedDriversRef.current.length > 0) {
+      chartRef.current.data.datasets.forEach((ds: any, i: number) => {
+        chartRef.current!.setDatasetVisibility(i, selectedDriversRef.current.includes(ds.label));
+      });
+      chartRef.current.update('none');
+    }
+
     return () => {
       if (chartRef.current) {
         chartRef.current.destroy();
@@ -248,6 +256,7 @@ const LapsChart = ({ year, grandPrix, session }: TelemetryComponentProps) => {
   }, [lapChartPayload, teamColors]);
 
   useEffect(() => {
+    selectedDriversRef.current = selectedDrivers;
     const chart = chartRef.current;
     if (!chart) return;
 
@@ -266,63 +275,70 @@ const LapsChart = ({ year, grandPrix, session }: TelemetryComponentProps) => {
   const resetAll = () => {
     if (!lapChartPayload || driverOrder.length === 0) return;
     setSelectedDrivers(lapChartPayload.podium || driverOrder.slice(0, 3));
+    if (chartRef.current) {
+      chartRef.current.resetZoom();
+    }
   };
 
   const lapData = lapChartPayload && Array.isArray(lapChartPayload.laps) ? lapChartPayload.laps : [];
 
   if (!lapChartPayload || lapData.length === 0) {
     return (
-      <div className="bg-gray-800 rounded-lg shadow-xl border border-gray-700 p-5">
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg font-bold text-white">Lap Times Chart</h3>
+      <div className="bg-gradient-to-b from-[#1C1F38] to-[#14172A] rounded-lg shadow-[0_8px_32px_rgba(0,0,0,0.6)] overflow-hidden border border-[#2A2D45] border-t-white/[0.08]">
+        <div className="px-4 py-3">
+          <h3 className="text-xs font-semibold text-[#8B92B8] uppercase tracking-[0.12em]">Lap Times Chart</h3>
         </div>
-        <div className="bg-gray-900 rounded-lg p-4 flex items-center justify-center" style={{ height: 400 }}>
-          <p className="text-gray-400 text-center">
-            Lap times data not available for this session.
-            <br />
-            <span className="text-sm text-gray-500">Lap data may not be available for this race.</span>
-          </p>
+        <div className="p-4">
+          <div className="bg-[#111320] rounded-lg p-4 flex items-center justify-center" style={{ height: 400 }}>
+            <p className="text-[#8B92B8] text-center">
+              Lap times data not available for this session.
+              <br />
+              <span className="text-sm text-[#4A5080]">Lap data may not be available for this race.</span>
+            </p>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="bg-gray-800 rounded-lg shadow-xl border border-gray-700 p-5">
-      <div className="flex justify-between items-center mb-4">
-        <h3 className="text-lg font-bold text-white">Lap Times Chart</h3>
+    <div className="bg-gradient-to-b from-[#1C1F38] to-[#14172A] rounded-lg shadow-[0_8px_32px_rgba(0,0,0,0.6)] overflow-hidden border border-[#2A2D45] border-t-white/[0.08]">
+      <div className="px-4 py-3 flex justify-between items-center">
+        <h3 className="text-xs font-semibold text-[#8B92B8] uppercase tracking-[0.12em]">Lap Times Chart</h3>
         <button
           onMouseDown={(e) => e.preventDefault()}
           onClick={resetAll}
-          className="px-3 py-1 bg-gray-600 hover:bg-gray-500 text-white rounded cursor-pointer transition-colors text-sm"
+          className="px-3 py-1 bg-transparent border border-[#3A4060] hover:border-[#5A6090] hover:bg-[#252B40] text-[#8B92B8] hover:text-[#F0F2FF] rounded cursor-pointer transition-all text-sm"
         >
           Reset
         </button>
       </div>
-      <div className="bg-gray-900 rounded-lg p-4" style={{ height: 400 }}>
-        <canvas ref={canvasRef} />
-      </div>
-      <div className="flex flex-wrap gap-2 mt-4">
-        {driverOrder
-          .filter((drv) => lapData.some((l) => l.driver === drv))
-          .map((drv) => {
-            const isSelected = selectedDrivers.includes(drv);
-            return (
-              <button
-                key={drv}
-                onMouseDown={(e) => e.preventDefault()}
-                onClick={() => toggleDriver(drv)}
-                className="px-3 py-1 rounded cursor-pointer transition-all text-sm font-semibold"
-                style={{
-                  backgroundColor: isSelected ? teamColors[drv] : '#374151',
-                  color: isSelected ? '#fff' : teamColors[drv] || '#fff',
-                  border: isSelected ? `2px solid ${teamColors[drv]}` : '2px solid transparent',
-                }}
-              >
-                {drv}
-              </button>
-            );
-          })}
+      <div className="p-4 pt-0">
+        <div className="bg-[#111320] rounded-lg p-4" style={{ height: 400 }}>
+          <canvas ref={canvasRef} />
+        </div>
+        <div className="flex flex-wrap gap-2 mt-4">
+          {driverOrder
+            .filter((drv) => lapData.some((l) => l.driver === drv))
+            .map((drv) => {
+              const isSelected = selectedDrivers.includes(drv);
+              return (
+                <button
+                  key={drv}
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => toggleDriver(drv)}
+                  className="px-3 py-1 rounded cursor-pointer transition-all text-sm font-semibold"
+                  style={{
+                    backgroundColor: isSelected ? teamColors[drv] : '#1C1F36',
+                    color: isSelected ? '#fff' : teamColors[drv] || '#fff',
+                    border: isSelected ? `2px solid ${teamColors[drv]}` : '2px solid transparent',
+                  }}
+                >
+                  {drv}
+                </button>
+              );
+            })}
+        </div>
       </div>
     </div>
   );

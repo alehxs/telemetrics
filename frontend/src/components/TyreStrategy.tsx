@@ -96,7 +96,7 @@ const TyreStrategyChart = ({ year, grandPrix, session }: TelemetryComponentProps
           borderWidth: 0,
           pointStyle: img,
           pointRadius: 10,
-          barThickness: 20,
+          barThickness: 14,
           borderRadius: 3,
         };
       })
@@ -125,27 +125,38 @@ const TyreStrategyChart = ({ year, grandPrix, session }: TelemetryComponentProps
         scales: {
           x: {
             stacked: true,
-            title: { display: true, text: 'Laps', color: '#9ca3af' },
+            title: { display: true, text: 'Laps', color: '#8B92B8' },
             beginAtZero: true,
             max: totalLaps,
-            grid: { display: true, color: '#374151' },
-            ticks: { stepSize: 1, color: '#9ca3af' },
+            grid: { display: true, color: '#2A2D45' },
+            ticks: { stepSize: 1, color: '#8B92B8' },
           },
           y: {
             stacked: true,
             title: { display: false },
             ticks: {
-              color: '#fff',
-              font: { size: 14, family: "'Formula1 Display'" },
+              color: '#F0F2FF',
+              font: { size: 12, family: "'Formula1 Display'" },
               autoSkip: false,
               maxTicksLimit: drivers.length,
+              padding: 6,
             },
-            grid: { display: true, color: '#374151' },
+            grid: { display: true, color: '#2A2D45' },
           },
         },
         plugins: {
           datalabels: {
-            color: '#000',
+            color: (ctx: { dataIndex: number; dataset: { backgroundColor: string[] } }) => {
+              const bg = ctx.dataset.backgroundColor?.[ctx.dataIndex] ?? '#000';
+              const hex = (bg as string).replace('#', '');
+              const r = parseInt(hex.substring(0, 2), 16);
+              const g = parseInt(hex.substring(2, 4), 16);
+              const b = parseInt(hex.substring(4, 6), 16);
+              const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+              return luminance > 0.5 ? '#000' : '#fff';
+            },
+            textShadowColor: 'rgba(0,0,0,0.6)',
+            textShadowBlur: 4,
             anchor: 'center',
             align: 'center',
             font: { size: 14, weight: 'bold' },
@@ -182,7 +193,7 @@ const TyreStrategyChart = ({ year, grandPrix, session }: TelemetryComponentProps
   }, [tyreByLap, driverOrder]);
 
   // Dynamic container height - give each driver more space
-  const containerHeight = driverOrder.length * 50 + 150;
+  const containerHeight = driverOrder.length * 44 + 60;
 
   if (loading || error || !Object.keys(tyreByLap).length) {
     const message = error
@@ -192,57 +203,28 @@ const TyreStrategyChart = ({ year, grandPrix, session }: TelemetryComponentProps
         : 'Tyre strategy data not available for this session.';
 
     return (
-      <div className="bg-gray-800 rounded-lg shadow-xl overflow-hidden">
-        <div className="bg-red-600 px-4 py-3">
-          <h2
-            className="text-lg font-bold text-white"
-            style={{ fontFamily: "'Formula1 Display'" }}
-          >
+      <div className="bg-gradient-to-b from-[#1C1F38] to-[#14172A] rounded-lg shadow-[0_8px_32px_rgba(0,0,0,0.6)] overflow-hidden border border-[#2A2D45] border-t-white/[0.08]">
+        <div className="px-4 py-3">
+          <h2 className="text-xs font-semibold text-[#8B92B8] uppercase tracking-[0.12em]">
             Tyre Strategy
           </h2>
         </div>
         <div className="p-4">
-          <p className={error ? 'text-red-400' : 'text-gray-400'}>{message}</p>
+          <p className={error ? 'text-red-400' : 'text-[#8B92B8]'}>{message}</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="bg-gray-800 rounded-lg shadow-xl overflow-hidden">
-      <div className="bg-red-600 px-4 py-3 flex items-center justify-between">
-        <h2
-          className="text-lg font-bold text-white"
-          style={{ fontFamily: "'Formula1 Display'" }}
-        >
+    <div className="bg-gradient-to-b from-[#1C1F38] to-[#14172A] rounded-lg shadow-[0_8px_32px_rgba(0,0,0,0.6)] overflow-hidden border border-[#2A2D45] border-t-white/[0.08]">
+      <div className="px-4 pt-3 pb-2">
+        <h2 className="text-xs font-semibold text-[#8B92B8] uppercase tracking-[0.12em]">
           Tyre Strategy
         </h2>
-        <div className="group relative">
-          <svg
-            className="w-5 h-5 text-white cursor-help"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-            />
-          </svg>
-          <div className="absolute right-0 top-8 hidden group-hover:block bg-gray-900 text-white text-xs rounded-lg p-3 w-64 z-10 border border-gray-600 shadow-xl">
-            <p className="font-semibold mb-1">Tyre Compound Labels</p>
-            <p className="text-gray-300">
-              Compounds shown as SOFT/MEDIUM/HARD (Pirelli's race-weekend labels).
-              C-numbers (C1-C5) not available via API - the same physical compound may be
-              labeled differently at different tracks.
-            </p>
-          </div>
-        </div>
       </div>
-      <div className="p-4">
-        <div style={{ height: containerHeight }}>
+      <div className="px-4 pb-4 pt-1">
+        <div className="bg-[#111320] rounded-lg p-2" style={{ height: containerHeight }}>
           <canvas ref={canvasRef} />
         </div>
       </div>
