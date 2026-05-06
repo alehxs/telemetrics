@@ -65,12 +65,12 @@ export const DEFAULT_YEAR = 2024;
  */
 export const TEAM_LOGO_BASE_PATH = '/telemetrics/team_logos/';
 
-/**
- * Get team logo path
- */
+const SVG_TEAM_LOGOS = new Set(['audi']);
+
 export function getTeamLogoPath(teamName: string): string {
   const formattedName = teamName.toLowerCase().replace(/\s+/g, '_');
-  return `${TEAM_LOGO_BASE_PATH}${formattedName}.png`;
+  const ext = SVG_TEAM_LOGOS.has(formattedName) ? '.svg' : '.png';
+  return `${TEAM_LOGO_BASE_PATH}${formattedName}${ext}`;
 }
 
 /**
@@ -129,27 +129,6 @@ export function adjustColorLightness(hexColor: string, amount: number): string {
 
   const toHex = (x: number) => Math.round(x * 255).toString(16).padStart(2, '0');
   return `#${toHex(nr)}${toHex(ng)}${toHex(nb)}`;
-}
-
-/**
- * Adjust team color brightness for better readability
- */
-export function adjustTeamColor(hexColor: string, amount: number = 30): string {
-  // Remove # if present
-  const color = hexColor.replace('#', '');
-
-  // Convert to RGB
-  const r = parseInt(color.substring(0, 2), 16);
-  const g = parseInt(color.substring(2, 4), 16);
-  const b = parseInt(color.substring(4, 6), 16);
-
-  // Adjust brightness
-  const newR = Math.min(255, Math.max(0, r + amount));
-  const newG = Math.min(255, Math.max(0, g + amount));
-  const newB = Math.min(255, Math.max(0, b + amount));
-
-  // Convert back to hex
-  return `#${newR.toString(16).padStart(2, '0')}${newG.toString(16).padStart(2, '0')}${newB.toString(16).padStart(2, '0')}`;
 }
 
 /**
