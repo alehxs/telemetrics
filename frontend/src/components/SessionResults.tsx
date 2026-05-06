@@ -53,7 +53,7 @@ const SessionResults = ({ year, grandPrix, session }: TelemetryComponentProps) =
                     <span className="text-sm">{driver.Abbreviation}</span>
                   </div>
                 </td>
-                <td className="px-3 py-2 text-right text-sm font-bold">
+                <td className="px-3 py-2 text-right text-sm">
                   {getDisplayTime(driver, leaderTime, isQualifying || index === 0)}
                 </td>
               </tr>
