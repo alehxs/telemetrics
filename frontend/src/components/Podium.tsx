@@ -6,9 +6,9 @@ const Podium = ({ year, grandPrix, session }: TelemetryComponentProps) => {
   const { data: podiumData } = usePodium(year, grandPrix, session);
 
   return (
-    <div className="bg-gradient-to-b from-[#1C1F38] to-[#14172A] rounded-lg shadow-[0_8px_32px_rgba(0,0,0,0.6)] overflow-hidden border border-[#2A2D45] border-t-white/[0.08]">
+    <div className="bg-gradient-to-b from-[#1E1E26] to-[#15151E] rounded-lg shadow-[0_8px_32px_rgba(0,0,0,0.6)] overflow-hidden border border-[#2A2A35] border-t-white/[0.08]">
       <div className="px-4 py-3">
-        <h2 className="text-xs font-semibold text-[#8B92B8] uppercase tracking-[0.12em]">Podium</h2>
+        <h2 className="text-xs font-semibold text-[#888892] uppercase tracking-[0.12em]">Podium</h2>
       </div>
       <div className="p-4 pt-0">
       <div className="flex flex-col md:flex-row gap-3 md:gap-4">

@@ -125,30 +125,30 @@ const TyreStrategyChart = ({ year, grandPrix, session }: TelemetryComponentProps
         scales: {
           x: {
             stacked: true,
-            title: { display: true, text: 'Laps', color: '#8B92B8' },
+            title: { display: true, text: 'Laps', color: '#888892' },
             beginAtZero: true,
             max: totalLaps,
-            grid: { display: true, color: '#2A2D45' },
-            ticks: { stepSize: 1, color: '#8B92B8' },
+            grid: { display: true, color: '#252530' },
+            ticks: { stepSize: 1, color: '#888892' },
           },
           y: {
             stacked: true,
             title: { display: false },
             ticks: {
-              color: '#F0F2FF',
+              color: '#FFFFFF',
               font: { size: 12, family: "'Formula1 Display'" },
               autoSkip: false,
               maxTicksLimit: drivers.length,
               padding: 6,
             },
-            grid: { display: true, color: '#2A2D45' },
+            grid: { display: true, color: '#252530' },
           },
         },
         plugins: {
           datalabels: {
-            color: (ctx: { dataIndex: number; dataset: { backgroundColor: string[] } }) => {
-              const bg = ctx.dataset.backgroundColor?.[ctx.dataIndex] ?? '#000';
-              const hex = (bg as string).replace('#', '');
+            color: (ctx: { dataIndex: number; dataset: { backgroundColor: string } }) => {
+              const bg = ctx.dataset.backgroundColor ?? '#000';
+              const hex = bg.replace('#', '');
               const r = parseInt(hex.substring(0, 2), 16);
               const g = parseInt(hex.substring(2, 4), 16);
               const b = parseInt(hex.substring(4, 6), 16);
@@ -203,28 +203,28 @@ const TyreStrategyChart = ({ year, grandPrix, session }: TelemetryComponentProps
         : 'Tyre strategy data not available for this session.';
 
     return (
-      <div className="bg-gradient-to-b from-[#1C1F38] to-[#14172A] rounded-lg shadow-[0_8px_32px_rgba(0,0,0,0.6)] overflow-hidden border border-[#2A2D45] border-t-white/[0.08]">
+      <div className="bg-gradient-to-b from-[#1E1E26] to-[#15151E] rounded-lg shadow-[0_8px_32px_rgba(0,0,0,0.6)] overflow-hidden border border-[#2A2A35] border-t-white/[0.08]">
         <div className="px-4 py-3">
-          <h2 className="text-xs font-semibold text-[#8B92B8] uppercase tracking-[0.12em]">
+          <h2 className="text-xs font-semibold text-[#888892] uppercase tracking-[0.12em]">
             Tyre Strategy
           </h2>
         </div>
         <div className="p-4">
-          <p className={error ? 'text-red-400' : 'text-[#8B92B8]'}>{message}</p>
+          <p className={error ? 'text-red-400' : 'text-[#888892]'}>{message}</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="bg-gradient-to-b from-[#1C1F38] to-[#14172A] rounded-lg shadow-[0_8px_32px_rgba(0,0,0,0.6)] overflow-hidden border border-[#2A2D45] border-t-white/[0.08]">
+    <div className="bg-gradient-to-b from-[#1E1E26] to-[#15151E] rounded-lg shadow-[0_8px_32px_rgba(0,0,0,0.6)] overflow-hidden border border-[#2A2A35] border-t-white/[0.08]">
       <div className="px-4 pt-3 pb-2">
-        <h2 className="text-xs font-semibold text-[#8B92B8] uppercase tracking-[0.12em]">
+        <h2 className="text-xs font-semibold text-[#888892] uppercase tracking-[0.12em]">
           Tyre Strategy
         </h2>
       </div>
       <div className="px-4 pb-4 pt-1">
-        <div className="bg-[#111320] rounded-lg p-2" style={{ height: containerHeight }}>
+        <div className="bg-[#111118] rounded-lg p-2" style={{ height: containerHeight }}>
           <canvas ref={canvasRef} />
         </div>
       </div>

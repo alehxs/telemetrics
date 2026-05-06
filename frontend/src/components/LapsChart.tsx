@@ -48,12 +48,14 @@ const LapsChart = ({ year, grandPrix, session }: TelemetryComponentProps) => {
   );
 
   useEffect(() => {
-    if (!lapChartPayload) return;
+    if (!lapChartPayload || driverOrder.length === 0) return;
     setSelectedDrivers(lapChartPayload.podium || driverOrder.slice(0, 3));
   }, [lapChartPayload, driverOrder]);
 
   useEffect(() => {
     if (!lapChartPayload || !canvasRef.current) return;
+
+    selectedDriversRef.current = [];
 
     const lapData = Array.isArray(lapChartPayload.laps) ? lapChartPayload.laps : [];
     if (lapData.length === 0) return;
@@ -133,13 +135,13 @@ const LapsChart = ({ year, grandPrix, session }: TelemetryComponentProps) => {
             title: { display: true, text: 'Lap Number' },
             min: xMin,
             max: xMax,
-            grid: { display: true, color: '#2A2D45' },
+            grid: { display: true, color: '#252530' },
           },
           y: {
             title: { display: false },
             min: yMin,
             max: yMax,
-            grid: { display: true, color: '#2A2D45' },
+            grid: { display: true, color: '#252530' },
             ticks: {
               callback: (value: string | number) => {
                 const numValue = Number(value);
@@ -241,13 +243,6 @@ const LapsChart = ({ year, grandPrix, session }: TelemetryComponentProps) => {
 
     chartRef.current = new Chart(canvasRef.current, config);
 
-    if (selectedDriversRef.current.length > 0) {
-      chartRef.current.data.datasets.forEach((ds: any, i: number) => {
-        chartRef.current!.setDatasetVisibility(i, selectedDriversRef.current.includes(ds.label));
-      });
-      chartRef.current.update('none');
-    }
-
     return () => {
       if (chartRef.current) {
         chartRef.current.destroy();
@@ -284,16 +279,16 @@ const LapsChart = ({ year, grandPrix, session }: TelemetryComponentProps) => {
 
   if (!lapChartPayload || lapData.length === 0) {
     return (
-      <div className="bg-gradient-to-b from-[#1C1F38] to-[#14172A] rounded-lg shadow-[0_8px_32px_rgba(0,0,0,0.6)] overflow-hidden border border-[#2A2D45] border-t-white/[0.08]">
+      <div className="bg-gradient-to-b from-[#1E1E26] to-[#15151E] rounded-lg shadow-[0_8px_32px_rgba(0,0,0,0.6)] overflow-hidden border border-[#2A2A35] border-t-white/[0.08]">
         <div className="px-4 py-3">
-          <h3 className="text-xs font-semibold text-[#8B92B8] uppercase tracking-[0.12em]">Lap Times Chart</h3>
+          <h3 className="text-xs font-semibold text-[#888892] uppercase tracking-[0.12em]">Lap Times Chart</h3>
         </div>
         <div className="p-4">
-          <div className="bg-[#111320] rounded-lg p-4 flex items-center justify-center" style={{ height: 400 }}>
-            <p className="text-[#8B92B8] text-center">
+          <div className="bg-[#111118] rounded-lg p-4 flex items-center justify-center" style={{ height: 400 }}>
+            <p className="text-[#888892] text-center">
               Lap times data not available for this session.
               <br />
-              <span className="text-sm text-[#4A5080]">Lap data may not be available for this race.</span>
+              <span className="text-sm text-[#4A4A58]">Lap data may not be available for this race.</span>
             </p>
           </div>
         </div>
@@ -302,19 +297,19 @@ const LapsChart = ({ year, grandPrix, session }: TelemetryComponentProps) => {
   }
 
   return (
-    <div className="bg-gradient-to-b from-[#1C1F38] to-[#14172A] rounded-lg shadow-[0_8px_32px_rgba(0,0,0,0.6)] overflow-hidden border border-[#2A2D45] border-t-white/[0.08]">
+    <div className="bg-gradient-to-b from-[#1E1E26] to-[#15151E] rounded-lg shadow-[0_8px_32px_rgba(0,0,0,0.6)] overflow-hidden border border-[#2A2A35] border-t-white/[0.08]">
       <div className="px-4 py-3 flex justify-between items-center">
-        <h3 className="text-xs font-semibold text-[#8B92B8] uppercase tracking-[0.12em]">Lap Times Chart</h3>
+        <h3 className="text-xs font-semibold text-[#888892] uppercase tracking-[0.12em]">Lap Times Chart</h3>
         <button
           onMouseDown={(e) => e.preventDefault()}
           onClick={resetAll}
-          className="px-3 py-1 bg-transparent border border-[#3A4060] hover:border-[#5A6090] hover:bg-[#252B40] text-[#8B92B8] hover:text-[#F0F2FF] rounded cursor-pointer transition-all text-sm"
+          className="px-3 py-1 bg-transparent border border-[#303038] hover:border-[#484850] hover:bg-[#252530] text-[#888892] hover:text-white rounded cursor-pointer transition-all text-sm"
         >
           Reset
         </button>
       </div>
       <div className="p-4 pt-0">
-        <div className="bg-[#111320] rounded-lg p-4" style={{ height: 400 }}>
+        <div className="bg-[#111118] rounded-lg p-4" style={{ height: 400 }}>
           <canvas ref={canvasRef} />
         </div>
         <div className="flex flex-wrap gap-2 mt-4">
@@ -329,7 +324,7 @@ const LapsChart = ({ year, grandPrix, session }: TelemetryComponentProps) => {
                   onClick={() => toggleDriver(drv)}
                   className="px-3 py-1 rounded cursor-pointer transition-all text-sm font-semibold"
                   style={{
-                    backgroundColor: isSelected ? teamColors[drv] : '#1C1F36',
+                    backgroundColor: isSelected ? teamColors[drv] : '#1E1E28',
                     color: isSelected ? '#fff' : teamColors[drv] || '#fff',
                     border: isSelected ? `2px solid ${teamColors[drv]}` : '2px solid transparent',
                   }}

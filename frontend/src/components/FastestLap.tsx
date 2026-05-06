@@ -8,7 +8,7 @@ const FastestLap = ({ year, grandPrix, session }: TelemetryComponentProps) => {
 
   if (loading || !fastestLap) {
     return (
-      <div className="bg-gradient-to-b from-[#1C1F38] to-[#14172A] rounded-lg shadow-[0_8px_32px_rgba(0,0,0,0.6)] overflow-hidden border border-[#2A2D45] border-t-white/[0.08]">
+      <div className="bg-gradient-to-b from-[#1E1E26] to-[#15151E] rounded-lg shadow-[0_8px_32px_rgba(0,0,0,0.6)] overflow-hidden border border-[#2A2A35] border-t-white/[0.08]">
         <div className="px-4 py-3" style={{ backgroundColor: F1_COLORS.FASTEST_LAP }}>
           <div className="flex items-center gap-2">
             <img src="svgs/fastestlap.svg" alt="Timer icon" className="w-4 h-4" />
@@ -32,7 +32,7 @@ const FastestLap = ({ year, grandPrix, session }: TelemetryComponentProps) => {
   const tyreSvgPath = getTyreSvgPath(tyreCompound);
 
   return (
-    <div className="bg-gradient-to-b from-[#1C1F38] to-[#14172A] rounded-lg shadow-[0_8px_32px_rgba(0,0,0,0.6)] overflow-hidden border border-[#2A2D45] border-t-white/[0.08]">
+    <div className="bg-gradient-to-b from-[#1E1E26] to-[#15151E] rounded-lg shadow-[0_8px_32px_rgba(0,0,0,0.6)] overflow-hidden border border-[#2A2A35] border-t-white/[0.08]">
       <div
         className="px-4 py-3"
         style={{ backgroundColor: F1_COLORS.FASTEST_LAP }}
