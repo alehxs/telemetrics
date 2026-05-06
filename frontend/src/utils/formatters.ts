@@ -11,7 +11,7 @@ import type { Driver } from '../types/telemetry';
 export function formatLeaderTime(time: string | null | undefined): string {
   if (!time) return 'N/A';
 
-  const formattedTime = time.replace(/0 days\s|^00:/g, '').split('.');
+  const formattedTime = time.replace(/0 days\s/, '').replace(/^00:/, '').split('.');
   const timeWithoutLeadingZeros = formattedTime[0]
     .replace(/^0:0/, '')
     .replace(/^0:/, '');
