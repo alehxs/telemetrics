@@ -31,7 +31,7 @@ import pandas as pd
 import numpy as np
 import logging
 from typing import List, Dict, Any, Optional
-from config import TEAM_MAPPINGS, DRIVER_HEADSHOT_URL, TEAM_LOGO_PATH
+from config import TEAM_MAPPINGS, DRIVER_HEADSHOT_URL, TEAM_LOGO_PATH, QUALIFYING_SESSION_TYPES
 
 logger = logging.getLogger(__name__)
 
@@ -170,29 +170,50 @@ class DataTransformer:
         # Default to Finished
         return 'Finished'
 
+    def _get_best_qualifying_time(self, row) -> str:
+        """Return the driver's best time from their highest qualifying segment (Q3→Q2→Q1)."""
+        for col in ['Q3', 'Q2', 'Q1']:
+            val = row.get(col)
+            if val is not None and not pd.isna(val):
+                return self._format_lap_time(val)
+        return "DNF"
+
     def transform_session_results(self) -> List[Dict[str, Any]]:
         """
         Transform session results (race/qualifying standings)
         """
+        is_qualifying = self.extractor.session_type in QUALIFYING_SESSION_TYPES
+
         results = self.extractor.get_driver_standings()
 
-        # Calculate lap counts from session laps data
         lap_counts = {}
         leader_laps = 0
-        try:
-            laps = self.extractor.get_laps()
-            if not laps.empty:
-                # Count laps per driver (max lap number they completed)
-                lap_counts = laps.groupby('Driver')['LapNumber'].max().to_dict()
-                leader_laps = max(lap_counts.values()) if lap_counts else 0
-        except Exception as e:
-            logger.warning(f"Could not calculate lap counts: {e}")
+        if not is_qualifying:
+            try:
+                laps = self.extractor.get_laps()
+                if not laps.empty:
+                    lap_counts = laps.groupby('Driver')['LapNumber'].max().to_dict()
+                    leader_laps = max(lap_counts.values()) if lap_counts else 0
+            except Exception as e:
+                logger.warning(f"Could not calculate lap counts: {e}")
 
         session_results = []
         for _, row in results.iterrows():
             team_name = self._normalize_team_name(row.get('TeamName', 'Unknown'))
             driver_abbr = str(row.get('Abbreviation', 'UNK'))
-            driver_laps = lap_counts.get(driver_abbr, 0)
+
+            if is_qualifying:
+                best_time = self._get_best_qualifying_time(row)
+                if best_time != 'DNF':
+                    status = 'Finished'
+                elif str(row.get('ClassifiedPosition', '')).upper() in ['R', 'W', 'N', 'D', 'E']:
+                    status = 'DNF'
+                else:
+                    status = 'DNS'
+            else:
+                driver_laps = lap_counts.get(driver_abbr, 0)
+                best_time = self._format_timedelta(row.get('Time', pd.NaT))
+                status = self._normalize_status(row, leader_laps, driver_laps)
 
             entry = {
                 'Position': int(row['Position']) if pd.notna(row['Position']) else 999,
@@ -200,14 +221,20 @@ class DataTransformer:
                 'TeamName': team_name,
                 'TeamLogo': self._get_team_logo_path(team_name),
                 'TeamColor': f"#{row.get('TeamColor', 'CCCCCC')}",
-                'Status': self._normalize_status(row, leader_laps, driver_laps),
-                'Time': self._format_timedelta(row.get('Time', pd.NaT)),
+                'Status': status,
+                'Time': best_time,
                 'DriverNumber': str(row.get('DriverNumber', '')),
                 'Points': int(row.get('Points', 0)) if pd.notna(row.get('Points')) else 0
             }
             session_results.append(entry)
 
-        return sorted(session_results, key=lambda x: x['Position'])
+        sorted_results = sorted(session_results, key=lambda x: x['Position'])
+        next_pos = next((r['Position'] for r in reversed(sorted_results) if r['Position'] < 999), 0) + 1
+        for entry in sorted_results:
+            if entry['Position'] >= 999:
+                entry['Position'] = next_pos
+                next_pos += 1
+        return sorted_results
 
     def transform_podium(self) -> List[Dict[str, Any]]:
         """
