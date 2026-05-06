@@ -31,7 +31,7 @@ import pandas as pd
 import numpy as np
 import logging
 from typing import List, Dict, Any, Optional
-from config import TEAM_MAPPINGS, DRIVER_HEADSHOT_URL, TEAM_LOGO_PATH, QUALIFYING_SESSION_TYPES
+from config import TEAM_MAPPINGS, DRIVER_HEADSHOT_URL, TEAM_LOGO_PATH, QUALIFYING_SESSION_TYPES, PRACTICE_SESSION_TYPES
 
 logger = logging.getLogger(__name__)
 
@@ -183,12 +183,13 @@ class DataTransformer:
         Transform session results (race/qualifying standings)
         """
         is_qualifying = self.extractor.session_type in QUALIFYING_SESSION_TYPES
+        is_practice = self.extractor.session_type in PRACTICE_SESSION_TYPES
 
         results = self.extractor.get_driver_standings()
 
         lap_counts = {}
         leader_laps = 0
-        if not is_qualifying:
+        if not is_qualifying and not is_practice:
             try:
                 laps = self.extractor.get_laps()
                 if not laps.empty:
@@ -196,6 +197,12 @@ class DataTransformer:
                     leader_laps = max(lap_counts.values()) if lap_counts else 0
             except Exception as e:
                 logger.warning(f"Could not calculate lap counts: {e}")
+
+        p1_time = pd.NaT
+        if is_practice:
+            first_valid = results[results['Time'].notna()]
+            if not first_valid.empty:
+                p1_time = first_valid.iloc[0]['Time']
 
         session_results = []
         for _, row in results.iterrows():
@@ -210,6 +217,16 @@ class DataTransformer:
                     status = 'DNF'
                 else:
                     status = 'DNS'
+            elif is_practice:
+                time_val = row.get('Time', pd.NaT)
+                if pd.notna(time_val):
+                    is_p1 = pd.notna(p1_time) and time_val == p1_time
+                    gap = time_val - p1_time if (not is_p1 and pd.notna(p1_time)) else time_val
+                    best_time = self._format_timedelta(gap)
+                    status = 'Finished'
+                else:
+                    best_time = 'DNF'
+                    status = 'DNF'
             else:
                 driver_laps = lap_counts.get(driver_abbr, 0)
                 best_time = self._format_timedelta(row.get('Time', pd.NaT))

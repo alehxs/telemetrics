@@ -37,6 +37,12 @@ if not SUPABASE_SERVICE_KEY.startswith('eyJ') or len(SUPABASE_SERVICE_KEY) < 100
 # Years to process (2018-2026 = all FastF1 coverage)
 YEARS = list(range(2018, 2027))
 
+# Session types that use qualifying format (Q1/Q2/Q3 times instead of race gaps)
+QUALIFYING_SESSION_TYPES = ['Qualifying', 'Q', 'Sprint Qualifying', 'SQ']
+
+# Session types that use practice format (best lap time + gap, no lap-deficit logic)
+PRACTICE_SESSION_TYPES = ['Practice 1', 'Practice 2', 'Practice 3', 'FP1', 'FP2', 'FP3']
+
 # Session types to fetch
 SESSION_TYPES = [
     'Practice 1',
