@@ -38,7 +38,7 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
             <p className="text-gray-700 mb-4">
               An unexpected error occurred while rendering the application.
             </p>
-            {this.state.error && (
+            {import.meta.env.DEV && this.state.error && (
               <details className="mb-4">
                 <summary className="cursor-pointer text-sm text-gray-600 hover:text-gray-800">
                   Error details
