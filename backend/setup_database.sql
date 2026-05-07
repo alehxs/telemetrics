@@ -40,7 +40,8 @@ ALTER TABLE telemetry_data
     'track_dominance',
     'tyres',
     'lap_chart_data',
-    'get_session_data'
+    'get_session_data',
+    'prediction_podium'
   ));
 
 -- Row-Level Security (RLS) Policies
@@ -62,14 +63,14 @@ CREATE POLICY "Allow anonymous read access"
 CREATE POLICY "Service role can insert"
   ON telemetry_data
   FOR INSERT
-  WITH CHECK (true);
+  WITH CHECK (auth.role() = 'service_role');
 
 CREATE POLICY "Service role can update"
   ON telemetry_data
   FOR UPDATE
-  USING (true);
+  USING (auth.role() = 'service_role');
 
 CREATE POLICY "Service role can delete"
   ON telemetry_data
   FOR DELETE
-  USING (true);
+  USING (auth.role() = 'service_role');
