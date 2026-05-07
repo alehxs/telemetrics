@@ -70,6 +70,17 @@ export interface LapChartPayload {
 // Tyre compound types
 export type TyreCompound = 'SOFT' | 'MEDIUM' | 'HARD' | 'INTERMEDIATE' | 'WET' | 'UNKNOWN';
 
+export interface PredictionPodiumDriver {
+  PredictedPosition: number;
+  Abbreviation: string;
+  TeamName: string;
+  TeamColor: string;
+  TeamLogo: string;
+  HeadshotUrl: string;
+  PodiumProbability: number;
+  QualifyingPosition: number;
+}
+
 // Data type identifiers in Supabase
 export type DataType =
   | 'session_results'
@@ -78,7 +89,8 @@ export type DataType =
   | 'track_dominance'
   | 'tyres'
   | 'lap_chart_data'
-  | 'get_session_data';
+  | 'get_session_data'
+  | 'prediction_podium';
 
 // Supabase row structure
 export interface TelemetryDataRow<T = unknown> {

@@ -13,6 +13,7 @@ import type {
   LapChartPayload,
   GrandPrixOption,
   SessionOption,
+  PredictionPodiumDriver,
 } from '../types/telemetry';
 import * as telemetryService from '../services/telemetryService';
 
@@ -199,6 +200,36 @@ export function useSessionOptions(
   );
 }
 
+export function usePredictionPodium(
+  year: number,
+  grandPrix: string,
+  selectedSession: string
+): UseDataState<PredictionPodiumDriver[]> {
+  const targetSession =
+    selectedSession === 'Sprint Qualifying' ? 'Sprint' : 'Race';
+  return useTelemetryData(
+    () => telemetryService.getPredictionPodium(year, grandPrix, targetSession),
+    [year, grandPrix, selectedSession],
+    []
+  );
+}
+
 export function useAvailableYears(): number[] {
   return telemetryService.AVAILABLE_YEARS;
+}
+
+export function useLatestSession(): UseDataState<telemetryService.LatestSession | null> {
+  return useTelemetryData<telemetryService.LatestSession | null>(
+    () => telemetryService.getLatestSession(),
+    [],
+    null
+  );
+}
+
+export function useLatestPrediction(): UseDataState<telemetryService.LatestPrediction | null> {
+  return useTelemetryData<telemetryService.LatestPrediction | null>(
+    () => telemetryService.getLatestPrediction(),
+    [],
+    null
+  );
 }

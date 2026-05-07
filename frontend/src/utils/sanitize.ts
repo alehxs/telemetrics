@@ -106,7 +106,8 @@ export function validateDataType(dataType: string): string {
     'get_session_data',
     'track_dominance',
     'tyres',
-    'lap_chart_data'
+    'lap_chart_data',
+    'prediction_podium'
   ];
 
   if (!validDataTypes.includes(trimmed)) {

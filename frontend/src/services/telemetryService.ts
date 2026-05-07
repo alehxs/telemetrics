@@ -10,6 +10,7 @@ import type {
   LapChartPayload,
   GrandPrixOption,
   SessionOption,
+  PredictionPodiumDriver,
 } from '../types/telemetry';
 import { validateYear, validateGrandPrix, validateSession, validateDataType, RateLimiter } from '../utils/sanitize';
 import { sanitizeNaN } from '../utils/formatters';
@@ -21,10 +22,46 @@ const rateLimiter = new RateLimiter(60, 60000);
 // Ensures multiple components requesting the same data fire only one network call.
 const requestCache = new Map<string, Promise<unknown>>();
 
-/**
- * Generic function to fetch telemetry data from Supabase
- * Includes input validation, rate limiting, and request deduplication
- */
+function assertRateLimitAvailable(): void {
+  if (!rateLimiter.canMakeRequest()) {
+    throw new Error('Rate limit exceeded. Please try again in a moment.');
+  }
+  rateLimiter.recordRequest();
+}
+
+const SESSION_ORDER: Record<string, number> = {
+  'Practice 1': 1,
+  'Practice 2': 2,
+  'Practice 3': 3,
+  'Sprint Qualifying': 4,
+  'Sprint': 5,
+  'Qualifying': 6,
+  'Race': 7,
+};
+
+type SessionRow = { year: number; grand_prix: string; session: string; EventDate: string };
+
+function filterPastSessionRows(rows: SessionRow[]): SessionRow[] {
+  const endOfToday = new Date();
+  endOfToday.setHours(23, 59, 59, 999);
+  return rows.filter((r) => typeof r.EventDate === 'string' && new Date(r.EventDate) <= endOfToday);
+}
+
+function pickLatestGPRows(rows: SessionRow[]): SessionRow[] {
+  const sorted = [...rows].sort((a, b) => {
+    if (b.year !== a.year) return b.year - a.year;
+    return new Date(b.EventDate).getTime() - new Date(a.EventDate).getTime();
+  });
+  const { year, EventDate: latestDate } = sorted[0];
+  return rows.filter((r) => r.year === year && r.EventDate === latestDate);
+}
+
+function pickMostAdvancedSession(rows: SessionRow[]): SessionRow {
+  return [...rows].sort(
+    (a, b) => (SESSION_ORDER[b.session] ?? 0) - (SESSION_ORDER[a.session] ?? 0)
+  )[0];
+}
+
 async function fetchTelemetryData<T>(
   year: number,
   grandPrix: string,
@@ -38,20 +75,12 @@ async function fetchTelemetryData<T>(
 
   const promise = (async () => {
     try {
-      // Rate limiting check
-      if (!rateLimiter.canMakeRequest()) {
-        console.warn('Rate limit exceeded. Please wait before making more requests.');
-        throw new Error('Rate limit exceeded. Please try again in a moment.');
-      }
+      assertRateLimitAvailable();
 
-      // Input validation
       const validatedYear = validateYear(year);
       const validatedGrandPrix = validateGrandPrix(grandPrix);
       const validatedSession = validateSession(session);
       const validatedDataType = validateDataType(dataType);
-
-      // Record the request
-      rateLimiter.recordRequest();
 
       const { data, error } = await supabase
         .from('telemetry_data')
@@ -227,6 +256,9 @@ export async function getGrandPrixOptions(year: number): Promise<GrandPrixOption
       country,
     }));
 
+    const today = new Date();
+    today.setHours(23, 59, 59, 999);
+
     // Sort by event date (chronological order)
     gpWithDates.sort((a, b) => {
       const dateA = new Date(a.date);
@@ -234,8 +266,10 @@ export async function getGrandPrixOptions(year: number): Promise<GrandPrixOption
       return dateA.getTime() - dateB.getTime();
     });
 
+    const pastGPs = gpWithDates.filter(({ date }) => new Date(date) <= today);
+
     // Return in schedule order
-    return gpWithDates.map(({ gp, country }) => ({
+    return pastGPs.map(({ gp, country }) => ({
       value: gp,
       label: gp,
       country,
@@ -268,23 +302,7 @@ export async function getSessionOptions(
     // Get unique session values
     const uniqueSessions = [...new Set(data.map((row) => row.session))];
 
-    // Define race weekend order
-    const sessionOrder: Record<string, number> = {
-      'Practice 1': 1,
-      'Practice 2': 2,
-      'Practice 3': 3,
-      'Sprint Qualifying': 4,
-      'Sprint': 5,
-      'Qualifying': 6,
-      'Race': 7,
-    };
-
-    // Sort sessions by race weekend order
-    uniqueSessions.sort((a, b) => {
-      const orderA = sessionOrder[a] ?? 99;
-      const orderB = sessionOrder[b] ?? 99;
-      return orderA - orderB;
-    });
+    uniqueSessions.sort((a, b) => (SESSION_ORDER[a] ?? 99) - (SESSION_ORDER[b] ?? 99));
 
     return uniqueSessions.map((session) => ({
       value: session,
@@ -296,4 +314,136 @@ export async function getSessionOptions(
   }
 }
 
-export const AVAILABLE_YEARS: number[] = [2025, 2024, 2023, 2022, 2021, 2020, 2019, 2018];
+export async function getPredictionPodium(
+  year: number,
+  grandPrix: string,
+  targetSession: string
+): Promise<PredictionPodiumDriver[]> {
+  const data = await fetchTelemetryData<PredictionPodiumDriver[]>(
+    year,
+    grandPrix,
+    targetSession,
+    'prediction_podium'
+  );
+  return data || [];
+}
+
+export const AVAILABLE_YEARS: number[] = [2026, 2025, 2024, 2023, 2022, 2021, 2020, 2019, 2018];
+
+export interface LatestSession {
+  year: number;
+  grandPrix: string;
+  session: string;
+}
+
+const LATEST_SESSION_CACHE_KEY = '__latest_session__';
+
+export async function getLatestSession(): Promise<LatestSession | null> {
+  if (requestCache.has(LATEST_SESSION_CACHE_KEY)) {
+    return requestCache.get(LATEST_SESSION_CACHE_KEY) as Promise<LatestSession | null>;
+  }
+
+  const promise = (async (): Promise<LatestSession | null> => {
+    try {
+      assertRateLimitAvailable();
+
+      const { data, error } = await supabase
+        .from('telemetry_data')
+        .select('year, grand_prix, session, payload->>EventDate')
+        .eq('data_type', 'get_session_data')
+        .order('year', { ascending: false })
+        .limit(200);
+
+      if (error || !data || data.length === 0) return null;
+
+      const rows = (data as unknown as SessionRow[]).filter(
+        (r) => typeof r.EventDate === 'string' && typeof r.year === 'number'
+      );
+      if (rows.length === 0) return null;
+
+      const past = filterPastSessionRows(rows);
+      if (past.length === 0) return null;
+
+      const { grand_prix: grandPrix, session, year } = pickMostAdvancedSession(pickLatestGPRows(past));
+      return { year, grandPrix, session };
+    } catch {
+      return null;
+    }
+  })();
+
+  requestCache.set(LATEST_SESSION_CACHE_KEY, promise);
+  promise.finally(() => requestCache.delete(LATEST_SESSION_CACHE_KEY));
+  return promise;
+}
+
+export interface LatestPrediction {
+  year: number;
+  grandPrix: string;
+  session: string;
+  drivers: PredictionPodiumDriver[];
+}
+
+const LATEST_PREDICTION_CACHE_KEY = '__latest_prediction__';
+
+export async function getLatestPrediction(): Promise<LatestPrediction | null> {
+  if (requestCache.has(LATEST_PREDICTION_CACHE_KEY)) {
+    return requestCache.get(LATEST_PREDICTION_CACHE_KEY) as Promise<LatestPrediction | null>;
+  }
+
+  const promise = (async (): Promise<LatestPrediction | null> => {
+    try {
+      assertRateLimitAvailable();
+
+      const { data: predictions, error } = await supabase
+        .from('telemetry_data')
+        .select('year, grand_prix, session, payload')
+        .eq('data_type', 'prediction_podium')
+        .order('year', { ascending: false });
+
+      if (error || !predictions || predictions.length === 0) return null;
+
+      const latestYear = predictions[0].year;
+      const sameYear = predictions.filter((p) => p.year === latestYear);
+
+      if (sameYear.length === 1) {
+        const p = sameYear[0];
+        return { year: p.year, grandPrix: p.grand_prix, session: p.session, drivers: p.payload as PredictionPodiumDriver[] };
+      }
+
+      const gpNames = sameYear.map((p) => p.grand_prix);
+      const { data: sessionData } = await supabase
+        .from('telemetry_data')
+        .select('grand_prix, payload->>EventDate')
+        .eq('year', latestYear)
+        .eq('data_type', 'get_session_data')
+        .in('grand_prix', gpNames);
+
+      const dateMap = new Map<string, string>();
+      (sessionData ?? []).forEach((r: unknown) => {
+        const row = r as { grand_prix: string; EventDate: string };
+        if (row.EventDate) dateMap.set(row.grand_prix, row.EventDate);
+      });
+
+      sameYear.sort((a, b) => {
+        const rawA = dateMap.get(a.grand_prix);
+        const rawB = dateMap.get(b.grand_prix);
+        const tA = rawA ? new Date(rawA).getTime() : NaN;
+        const tB = rawB ? new Date(rawB).getTime() : NaN;
+        if (Number.isNaN(tA) && Number.isNaN(tB)) return 0;
+        if (Number.isNaN(tA)) return 1;
+        if (Number.isNaN(tB)) return -1;
+        return tB - tA;
+      });
+
+      const latest = sameYear[0];
+      return { year: latest.year, grandPrix: latest.grand_prix, session: latest.session, drivers: latest.payload as PredictionPodiumDriver[] };
+    } catch (error) {
+      console.error('Failed to fetch latest prediction:', error);
+      return null;
+    }
+  })();
+
+  requestCache.set(LATEST_PREDICTION_CACHE_KEY, promise);
+  promise.finally(() => requestCache.delete(LATEST_PREDICTION_CACHE_KEY));
+  return promise;
+}
