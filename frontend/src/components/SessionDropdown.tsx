@@ -7,9 +7,10 @@ interface SessionDropdownProps {
   onSelect: (session: string) => void;
   isOpen?: boolean;
   onOpenChange?: (isOpen: boolean) => void;
+  defaultValue?: string;
 }
 
-const SessionDropdown = ({ year, grandPrix, onSelect, isOpen, onOpenChange }: SessionDropdownProps) => {
+const SessionDropdown = ({ year, grandPrix, onSelect, isOpen, onOpenChange, defaultValue }: SessionDropdownProps) => {
   const { data: sessionOptions } = useSessionOptions(year, grandPrix);
 
   const options = sessionOptions
@@ -23,6 +24,7 @@ const SessionDropdown = ({ year, grandPrix, onSelect, isOpen, onOpenChange }: Se
       onSelect={(value) => onSelect(String(value))}
       isOpen={isOpen}
       onOpenChange={onOpenChange}
+      defaultValue={defaultValue}
     />
   );
 };

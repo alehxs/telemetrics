@@ -9,9 +9,10 @@ interface GrandPrixDropdownProps {
   onSelect: (grandPrix: string) => void;
   isOpen?: boolean;
   onOpenChange?: (isOpen: boolean) => void;
+  defaultValue?: string;
 }
 
-const GrandPrixDropdown = ({ year, onSelect, isOpen, onOpenChange }: GrandPrixDropdownProps) => {
+const GrandPrixDropdown = ({ year, onSelect, isOpen, onOpenChange, defaultValue }: GrandPrixDropdownProps) => {
   const { data: grandPrixOptions } = useGrandPrixOptions(year);
 
   const options = grandPrixOptions.map((gp) => gp.value);
@@ -28,6 +29,7 @@ const GrandPrixDropdown = ({ year, onSelect, isOpen, onOpenChange }: GrandPrixDr
       onSelect={(value) => onSelect(String(value))}
       isOpen={isOpen}
       onOpenChange={onOpenChange}
+      defaultValue={defaultValue}
       renderOption={(gp) => {
         const code = getCountryCode(countryMap.get(String(gp)) ?? '');
         return (

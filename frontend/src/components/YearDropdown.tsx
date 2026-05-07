@@ -5,9 +5,10 @@ interface YearDropdownProps {
   onSelect: (year: number) => void;
   isOpen?: boolean;
   onOpenChange?: (isOpen: boolean) => void;
+  defaultValue?: string;
 }
 
-const YearDropdown = ({ onSelect, isOpen, onOpenChange }: YearDropdownProps) => {
+const YearDropdown = ({ onSelect, isOpen, onOpenChange, defaultValue }: YearDropdownProps) => {
   const years = useAvailableYears();
 
   return (
@@ -17,6 +18,7 @@ const YearDropdown = ({ onSelect, isOpen, onOpenChange }: YearDropdownProps) => 
       onSelect={(value) => onSelect(Number(value))}
       isOpen={isOpen}
       onOpenChange={onOpenChange}
+      defaultValue={defaultValue}
     />
   );
 };
